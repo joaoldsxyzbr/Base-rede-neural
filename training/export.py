@@ -12,10 +12,13 @@ _MAX_PARAMETERS = 250_000
 
 
 def _as_float32(value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError("Todos os parâmetros precisam ser números finitos")
     try:
-        rounded = struct.unpack("<f", struct.pack("<f", value))[0]
+        converted = float(value)
+        if not math.isfinite(converted):
+            raise ValueError("Todos os parâmetros precisam ser números finitos")
+        rounded = struct.unpack("<f", struct.pack("<f", converted))[0]
     except (OverflowError, struct.error) as exc:
         raise ValueError("Valor excede float32") from exc
     if not math.isfinite(rounded):
@@ -25,7 +28,7 @@ def _as_float32(value):
 
 def export_model(model):
     """Valida e retorna um modelo JSON-friendly, convertido a float32."""
-    if not isinstance(model, dict) or model.get("formatVersion") != 1:
+    if not isinstance(model, dict) or type(model.get("formatVersion")) is not int or model["formatVersion"] != 1:
         raise ValueError("Versão do modelo inválida")
     layers = model.get("layers")
     if not isinstance(layers, list) or not 1 <= len(layers) <= _MAX_LAYERS:

@@ -99,3 +99,12 @@ Para o smoke real, use **Chromium** ou **Chrome for Testing** (caminho em `CHROM
 **Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; benchmarks Node e smoke test em navegador adicionados ao CI (P4); P5 acrescenta um teste independente de extensão Manifest V3; Workers e dispositivos móveis continuam sem validação específica.
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).
+
+## P6 — Robustez e validação numérica
+
+- O treinamento Python agora **preserva integralmente o modelo original se ocorrer erro**, inclusive divergência numérica. Os pesos são calculados em uma cópia temporária e copiados para os arrays existentes somente após treino e avaliação bem-sucedidos.
+- A avaliação de perda (`dataset_loss`) usa apenas inferência, evitando retropropagação desnecessária.
+- Valores numéricos extremos e versões de formato inválidas são rejeitados com `ValueError` controlado, sem aceitar booleanos como versão.
+- Novos testes em `training_tests/test_robustness.py` cobrem rollback, atualização in-place, números extremos e ausência de cálculo de gradientes na avaliação.
+
+Execute `python -m unittest discover -s training_tests -v`. Esse isolamento custa uma cópia dos pesos **apenas durante o treinamento offline**; o runtime JS de inferência não foi alterado. Não há bibliotecas adicionais.

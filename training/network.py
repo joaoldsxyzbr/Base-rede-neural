@@ -15,13 +15,23 @@ def _size(value):
     return value
 
 
+def _finite_float(value, label):
+    """Validate native numeric inputs before converting huge integers to float."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{label}: número finito obrigatório")
+    try:
+        converted = float(value)
+    except (OverflowError, TypeError, ValueError) as exc:
+        raise ValueError(f"{label}: número fora do intervalo suportado") from exc
+    if not math.isfinite(converted):
+        raise ValueError(f"{label}: número finito obrigatório")
+    return converted
+
+
 def _vector(values, size, label):
     if not isinstance(values, (list, tuple)) or len(values) != size:
         raise ValueError(f"{label}: dimensão incorreta")
-    for value in values:
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-            raise ValueError(f"{label}: valores devem ser números finitos")
-    return values
+    return [_finite_float(value, label) for value in values]
 
 
 def create_network(sizes, activations, *, seed=0):
