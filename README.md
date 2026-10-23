@@ -1,30 +1,27 @@
 # Neural Core
 
-Motor neural genérico, portátil e independente, construído em **JavaScript puro**, sem dependências obrigatórias, APIs pagas ou telemetria.
+Base neural **genérica, independente e reutilizável**, sem acoplamento a aplicações ou plataformas. Os projetos se adaptam ao Neural Core, e não o contrário.
 
-## Objetivo
+## Linguagens e responsabilidades
 
-Fornecer uma base para construir, treinar, avaliar, salvar e executar redes neurais em aplicações diferentes. **As aplicações se adaptam ao Neural Core, nunca o contrário.**
+- **JavaScript puro (ES Modules):** núcleo de **inferência** portátil para navegadores, extensões, Node.js e outros ambientes compatíveis; sem dependências externas obrigatórias.
+- **Python:** ferramentas separadas de **treinamento, experimentação, avaliação e exportação** dos modelos. Não é exigido em tempo de execução nos aplicativos.
+- **Formato compartilhado:** arquitetura, ativações e pesos exportados em formato versionado e validado; previsões JavaScript devem ser comparadas com referências produzidas pelo treino Python.
 
-## Diretrizes
+A primeira versão (v0.1) terá uma MLP pequena para classificação e regressão, **não** um modelo de conversação generativa. Treinamento e inferência serão separados; não haverá treinamento automático em produção.
 
-1. Simplicidade, robustez e qualidade.
-2. Universalidade e independência.
-3. Arquitetura modular e extensível.
-4. Portabilidade e compatibilidade.
-5. Desempenho e custo zero.
-6. Aprendizado real e qualidade verificável.
-7. Segurança, privacidade e confiabilidade.
+## 7 regras fundamentais
 
-## Primeira versão (proposta, ainda não implementada)
+1. **Simplicidade, robustez e qualidade:** código claro, seguro e fácil de manter.
+2. **Universalidade e independência:** nenhuma lógica específica de projeto no núcleo.
+3. **Arquitetura modular e extensível:** componentes com responsabilidades bem definidas.
+4. **Portabilidade e compatibilidade:** JavaScript para execução; Python para ferramentas de treinamento.
+5. **Desempenho e custo zero:** modelos compactos, processamento eficiente, sem servidor ou API paga obrigatórios.
+6. **Aprendizado real e qualidade verificável:** testes reproduzíveis, métricas e comparação com alternativas tradicionais.
+7. **Segurança, privacidade e confiabilidade:** processamento local, validação rigorosa, sem telemetria e sem comprometer compatibilidade.
 
-- Rede MLP com camadas densas, inicialmente para classificação e regressão simples.
-- Inferência e treinamento com `Float32Array` e APIs nativas de JavaScript.
-- Treinamento supervisionado com retropropagação e SGD.
-- Pesos serializáveis em formato versionado e validado.
-- Testes reproduzíveis de cálculos, treinamento, persistência e portabilidade.
-- Nenhuma especialidade de produto dentro do núcleo.
+## Estado
 
-**Estado:** arquitetura definida; implementação e testes ainda pendentes.
+**Arquitetura planejada; nenhuma implementação ou treinamento concluído.**
 
-Confira [a arquitetura e as etapas propostas](docs/architecture.md).
+Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).
