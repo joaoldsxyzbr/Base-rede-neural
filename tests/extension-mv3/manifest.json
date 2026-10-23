@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Neural Core MV3 Smoke Test",
+  "version": "0.1.0",
+  "description": "Isolated local compatibility test. No telemetry or network permissions.",
+  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHNfZYKOK/2XCNNazfBKBX6CWirEACuEjdcQkT+7/OKSg6SM2+8n7DdNaXpIWtrEqQMFiM4dM3Ab6D6fSSgh8FAzJtxB6v4N6RwPcBqba+/Tlyoxs1RHKRG7eH1vG2uryUjyic7MGS4URR2Bv9RfUgV7yQaYddjc+VCneT1JCFmwIDAQAB",
+  "action": { "default_popup": "popup.html" },
+  "background": { "service_worker": "worker.js", "type": "module" }
+}

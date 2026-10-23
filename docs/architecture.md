@@ -1,6 +1,6 @@
 # Arquitetura inicial do Neural Core
 
-**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) implementados; P4 inclui benchmark Node e teste Chrome headless; runtime em extensão/Workers continua sem validação específica.  
+**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) implementados; P4 inclui benchmark Node e teste Chrome headless; P5 acrescenta validação em extensão MV3 isolada, com popup e service worker; Workers e mobile continuam sem validação específica.  
 **Decisão:** desenvolver uma MLP pequena e matematicamente verificável. Não começar com IA generativa.
 
 ## 1. Independência
@@ -128,3 +128,15 @@ O motor de inferência será um módulo ES padrão sem imports exclusivos de Nod
 - **Limites:** benchmarks em runners compartilhados não são medição definitiva de hardware real, não representam memória de uma extensão/PWA e não comprovam execução em Cloudflare Workers. Uma extensão MV3 deve receber uma verificação específica de suas políticas e lifecycle; Workers precisam de uma medição no seu ambiente real.
 
 Detalhes em [performance.md](performance.md).
+
+## P5 — Extensão independente Manifest V3
+
+- O P5 mantém o Neural Core genérico e o empacota somente no **teste** `tests/extension-mv3/`, sem incluir lógica para um aplicativo específico no núcleo.
+- O manifest MV3 não solicita permissões de sites, armazenamento, rede externa ou telemetria.
+- O `popup.js` compara os 19 vetores da referência Python × JS, testa carga e serialização dos modelos e verifica que está em `chrome-extension://`.
+- O `worker.js` é um service worker `type: module`, importa os mesmos arquivos `src/*.js`, registra o listener síncrono e responde a uma mensagem do popup após executar `predict`.
+- O runner `scripts/extension-smoke.mjs` copia temporariamente o código, carrega a extensão unpacked no Chromium/Chrome for Testing e **confere o resultado no DOM**; não confunde teste de página HTML comum com execução em contexto de extensão.
+- O CI testa a extensão num Chrome for Testing oficial instalado em diretório temporário, sem bibliotecas npm e sem exigir instalação nos projetos consumidores.
+- **Limites:** o teste não comprova funcionamento dentro da extensão de modo escuro, lifecycle completo da MV3, mobile, Chrome Web Store ou Cloudflare Workers.
+
+Detalhes em [extension-mv3.md](extension-mv3.md).

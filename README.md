@@ -81,8 +81,21 @@ node scripts/browser-smoke.mjs
 
 Para o teste de navegador, é necessário ter Chrome/Chromium instalado (ou informar `CHROME_BIN` com o caminho do executável). O CI usa a instalação de Chrome do runner Ubuntu. Consulte [metodologia e limites dos benchmarks](docs/performance.md). A execução como extensão Manifest V3 e no Cloudflare Workers continua exigindo testes próprios: compatibilidade no Chrome **não prova** esses cenários.
 
+## Extensão independente Manifest V3 (P5)
+
+O teste em `tests/extension-mv3/` é uma extensão MV3 **exclusivamente para validação**. Não está integrada ao Dark Reader nem a nenhum aplicativo. Um script empacota temporariamente o núcleo JS original e a fixture de referência dentro da extensão. Não instala bibliotecas externas, não coleta dados, não tem permissões de sites, nem solicita acesso a abas.
+
+O popup verifica os **19 vetores da paridade Python × JS**. O service worker MV3, carregado como módulo ES, importa o mesmo núcleo para executar uma previsão de referência (`[4,5] → [24]`). O teste falha se a extensão não carregar ou se qualquer contexto não responder corretamente.
+
+```bash
+node --test tests/extension-mv3.test.js
+node scripts/extension-smoke.mjs
+```
+
+Para o smoke real, use **Chromium** ou **Chrome for Testing** (caminho em `CHROME_BIN`), que permitem carregar extensões temporárias no ambiente de testes. O CI instala o Chrome for Testing a partir do serviço oficial do Google, apenas no job de teste. Nenhuma instalação é necessária para os usuários finais do motor. Consulte [documentação do P5](docs/extension-mv3.md).
+
 ## Estado
 
-**Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; benchmarks Node e smoke test em navegador adicionados ao CI (P4); validação direta de extensões/Workers permanece pendente.
+**Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; benchmarks Node e smoke test em navegador adicionados ao CI (P4); P5 acrescenta um teste independente de extensão Manifest V3; Workers e dispositivos móveis continuam sem validação específica.
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).
