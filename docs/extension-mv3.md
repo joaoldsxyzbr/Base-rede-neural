@@ -48,3 +48,7 @@ Esse resultado comprova a execução de inferência no popup e no service worker
 ## Correção de intermitência (23/10/2026)
 
 Após a primeira execução aprovada, uma repetição do CI falhou porque o script antigo usava `--dump-dom` com relógio virtual: o temporizador do popup podia vencer antes de o worker iniciar. O novo teste usa o **Chrome DevTools Protocol**, embutido no Chrome e acessado pelo `WebSocket` nativo do Node, com espera em tempo real, tempo limite explícito e verificação do resultado da extensão. A falha anterior foi registrada em [run 40007815157](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40007815157). Essa melhoria não altera o motor neural nem oculta falhas persistentes do service worker.
+
+### Revalidação após a correção
+
+O workflow [40008550827](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40008550827), do commit `69c9b201e6eae7071500f9e90f6af3fb7856cb2d`, **concluiu com sucesso os 8 jobs**. O job MV3 voltou a registrar `PASS: MV3 popup (19 cases) and service worker` usando o teste CDP em tempo real. Isso encerra a instabilidade observada no teste anterior neste ambiente; regressões futuras continuarão sendo detectadas pelo CI.
