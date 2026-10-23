@@ -20,8 +20,18 @@ A primeira versão (v0.1) terá uma MLP pequena para classificação e regressã
 6. **Aprendizado real e qualidade verificável:** testes reproduzíveis, métricas e comparação com alternativas tradicionais.
 7. **Segurança, privacidade e confiabilidade:** processamento local, validação rigorosa, sem telemetria e sem comprometer compatibilidade.
 
+## Uso atual
+
+```javascript
+import { loadModel, predict } from './src/index.js';
+const model = loadModel({ formatVersion: 1, layers: [{ inputSize: 2, outputSize: 1, activation: 'linear', weights: [2, 3], biases: [1] }] });
+const output = predict(model, [4, 5]); // Float32Array([24])
+```
+
+Execute `npm test` para os testes nativos ou `node examples/linear.mjs` para o exemplo. Os pesos do exemplo são manuais; ainda não há treinamento. O arquivo JSON do modelo deve informar `formatVersion: 1` e camadas densas com pesos por neurônio de saída.
+
 ## Estado
 
-**Arquitetura planejada; nenhuma implementação ou treinamento concluído.**
+**Inferência JavaScript implementada e testada localmente (v0.1 parcial); treinamento Python ainda não implementado.**
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).

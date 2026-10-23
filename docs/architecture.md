@@ -1,6 +1,6 @@
 # Arquitetura inicial do Neural Core
 
-**Estado:** especificação v0.1, ainda não implementada.  
+**Estado:** v0.1 parcial: inferência JavaScript, importação, exportação e testes iniciais implementados. Treinamento Python e testes de paridade ainda pendentes.  
 **Decisão:** desenvolver uma MLP pequena e matematicamente verificável. Não começar com IA generativa.
 
 ## 1. Independência
@@ -69,7 +69,7 @@ Neural-Core/
 └── package.json             # ESM, testes nativos, sem dependências
 ```
 
-A árvore é apenas planejamento; os arquivos de implementação ainda não existem.
+A estrutura de JavaScript em `src/`, `tests/`, `examples/` e `package.json` está implementada; `training/` e `training_tests/` permanecem planejados.
 
 ## 5. Contrato comum dos modelos
 
@@ -79,7 +79,7 @@ O carregador JS deve rejeitar versões desconhecidas, topologias inválidas, inc
 
 A serialização é um **formato de intercâmbio**, não uma dependência do Python. Poderemos mudar seu armazenamento interno sem quebrar a API pública, desde que o contrato versionado seja respeitado.
 
-### API pública JS (proposta)
+### API pública JS (implementada)
 
 ```javascript
 import { loadModel, predict } from "./src/index.js";
@@ -117,4 +117,4 @@ O motor de inferência será um módulo ES padrão sem imports exclusivos de Nod
 5. **Verificação:** rodar testes, benchmark local e exemplo genérico; revisar documentação e segurança.
 6. **Expansão futura:** evoluir arquiteturas e otimizações apenas diante de necessidades e evidências; aplicações seguem desacopladas.
 
-**Nenhum projeto consumidor será alterado nesta etapa.**
+**Checkpoint:** inferência local validada com `node --test` (9 testes) e `node examples/linear.mjs`; compatibilidade real em navegador, extensão e Workers e treinamento Python ainda não verificados. Nenhum projeto consumidor foi alterado.
