@@ -32,3 +32,15 @@ Não testa o comportamento visual da extensão de modo escuro, scripts de conte�
 ## Evidência
 
 A aprovação em `node --test` confirma apenas a **estrutura**; a validação de MV3 requer que o job `Extensão Manifest V3 / Chrome for Testing` do GitHub Actions efetivamente passe. Não marcar este passo como completo sem inspecionar esse job.
+
+## Resultado verificado — 23/10/2026
+
+**P5 aprovado no GitHub Actions.** [Execução completa](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40007501913) do commit `a65719fda3bf89a3c4ff2d4cd09c31772f2bbee4`: **8 de 8 jobs concluídos com sucesso**.
+
+O job `Extensão Manifest V3 / Chrome for Testing` instalou Chrome for Testing oficialmente, carregou a extensão desempacotada e registrou a linha real:
+
+```text
+PASS: MV3 popup (19 cases) and service worker
+```
+
+Esse resultado comprova a execução de inferência no popup e no service worker MV3 **na configuração do Chrome for Testing do CI**, com os modelos de referência. Não comprova a extensão Dark Reader, Worker Cloudflare, execução em dispositivos móveis, ciclo de vida prolongado ou a publicação na Web Store.
