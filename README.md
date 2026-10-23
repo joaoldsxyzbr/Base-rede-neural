@@ -52,10 +52,21 @@ metrics = train(model, samples, epochs=3500, learning_rate=0.35, seed=21)
 save_model(model, "modelo.json")
 ```
 
-Os testes do CI executam JavaScript em Node 22/24 e Python em 3.11/3.13. A comparação das previsões entre Python e JS permanece para o P3.
+Os testes do CI executam JavaScript em Node 22/24 e Python em 3.11/3.13.
+
+## Paridade Python × JavaScript (P3)
+
+Um gerador Python produz pesos exportados em float32 e previsões de referência com casos lineares, redes multicamadas, sigmoid extrema e uma MLP treinada com XOR. O teste Node carrega **esses mesmos pesos** e verifica as saídas com tolerância `1e-5 + 1e-5 × abs(referência)`, inclusive após serializar e carregar novamente o modelo.
+
+```bash
+python -m training.parity_fixture > tests/fixtures/parity.json
+node --test tests/parity.test.js
+```
+
+O CI inclui também um job separado que gera novamente o conjunto de referência em Python e o utiliza diretamente nos testes JavaScript, impedindo que um arquivo antigo de exemplo esconda regressões. A fixture versionada permite executar `npm test` sem instalar Python. Isso valida paridade numérica nos casos testados, não precisão ou generalização em aplicações reais.
 
 ## Estado
 
-**Inferência JS e treinamento Python implementados.** Testes locais de gradientes, aprendizagem XOR e exportação aprovados; paridade numérica Python × JavaScript (P3) e validação real de navegador/extensão/Worker ainda pendentes.
+**Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; validação real de navegador/extensão/Worker e benchmarks (P4) ainda pendentes.
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).

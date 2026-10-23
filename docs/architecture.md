@@ -1,6 +1,6 @@
 # Arquitetura inicial do Neural Core
 
-**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) e portabilidade em ambientes adicionais continuam pendentes.  
+**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) implementados; desempenho e portabilidade em ambientes adicionais (P4) permanecem pendentes.  
 **Decisão:** desenvolver uma MLP pequena e matematicamente verificável. Não começar com IA generativa.
 
 ## 1. Independência
@@ -69,7 +69,7 @@ Neural-Core/
 └── package.json             # ESM, testes nativos, sem dependências
 ```
 
-A estrutura JavaScript em `src/` e `tests/`, o treinamento em `training/`, os testes em `training_tests/` e o exemplo `examples/train_xor.py` estão implementados. `tests/parity.test.js` e fixtures de paridade permanecem planejados para P3.
+A estrutura JavaScript em `src/` e `tests/`, o treinamento em `training/`, os testes em `training_tests/` e o exemplo `examples/train_xor.py` estão implementados. `tests/parity.test.js`, `tests/fixtures/parity.json`, `training/parity_fixture.py` e `training_tests/test_parity.py` foram adicionados no P3.
 
 ## 5. Contrato comum dos modelos
 
@@ -113,8 +113,8 @@ O motor de inferência será um módulo ES padrão sem imports exclusivos de Nod
 1. **Contrato:** definir JSON versionado, fixtures e testes de entradas inválidas.
 2. **Inferência JS:** implementar camadas densas, ativações e testes matemáticos.
 3. **Treinamento Python (P2 concluído):** MLP, retropropagação, SGD reproduzível, exportação float32, testes numéricos de gradientes e aprendizagem XOR.
-4. **Integração:** exportar modelos e executar testes de paridade nas duas linguagens.
+4. **Integração (P3 concluído):** gerar referências em Python após treinamento, exportar float32, comparar valores no JavaScript e verificar serialização nos casos reproduzíveis.
 5. **Verificação:** rodar testes, benchmark local e exemplo genérico; revisar documentação e segurança.
 6. **Expansão futura:** evoluir arquiteturas e otimizações apenas diante de necessidades e evidências; aplicações seguem desacopladas.
 
-**Checkpoint P2:** 7 testes Python aprovados localmente em Python 3.13; XOR treinado com seed fixa reduziu a perda média de aproximadamente 0,14069 para 0,000143 (sobre as 4 amostras de treino). CI testa Python 3.11/3.13 e Node.js 22/24. Paridade numérica Python/JavaScript (P3), generalização e execução em navegador/extensão/Workers ainda não comprovadas. Nenhum projeto consumidor foi alterado.
+**Checkpoint P3:** treino e exportação Python confrontados com inferência JS nos mesmos modelos (XOR treinado, redes lineares de múltiplas saídas, combinações de ativações e sigmoid com entradas extremas). A tolerância de saída é `1e-5 + 1e-5 × abs(referência)` devido ao uso de float32 no JS. A fixture fica versionada para permitir `npm test` independente de Python; um job de integração no CI gera uma fixture fresca em Python para evitar regressões mascaradas por snapshots antigos. Generalização, benchmarks e execução em navegadores/extensões/Workers ainda não foram comprovados. Nenhum projeto consumidor foi modificado.
