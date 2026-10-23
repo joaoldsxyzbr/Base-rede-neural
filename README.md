@@ -28,10 +28,34 @@ const model = loadModel({ formatVersion: 1, layers: [{ inputSize: 2, outputSize:
 const output = predict(model, [4, 5]); // Float32Array([24])
 ```
 
-Execute `npm test` para os testes nativos ou `node examples/linear.mjs` para o exemplo. Os pesos do exemplo são manuais; ainda não há treinamento. O arquivo JSON do modelo deve informar `formatVersion: 1` e camadas densas com pesos por neurônio de saída.
+Execute `npm test` para os testes de inferência, ou `node examples/linear.mjs` para o exemplo de pesos manuais. O formato JSON usa `formatVersion: 1`, camadas densas e pesos por neurônio de saída.
+
+## Treinamento Python (P2)
+
+Treinamento supervisionado de MLP com retropropagação, SGD reproduzível por semente, validação e exportação de pesos para o mesmo formato JSON. Apenas a biblioteca padrão do Python é utilizada. O Python **não é necessário para executar os modelos** nos aplicativos.
+
+```bash
+python -m unittest discover -s training_tests -v
+python -m examples.train_xor
+```
+
+O XOR é um teste controlado do aprendizado, não uma avaliação de generalização para aplicações reais. Para treinar/exportar programaticamente:
+
+```python
+from training.network import create_network
+from training.train import train
+from training.export import save_model
+
+model = create_network([2, 4, 1], ["tanh", "sigmoid"], seed=7)
+samples = [([0, 0], [0]), ([0, 1], [1]), ([1, 0], [1]), ([1, 1], [0])]
+metrics = train(model, samples, epochs=3500, learning_rate=0.35, seed=21)
+save_model(model, "modelo.json")
+```
+
+Os testes do CI executam JavaScript em Node 22/24 e Python em 3.11/3.13. A comparação das previsões entre Python e JS permanece para o P3.
 
 ## Estado
 
-**Inferência JavaScript implementada e testada localmente (v0.1 parcial); treinamento Python ainda não implementado.**
+**Inferência JS e treinamento Python implementados.** Testes locais de gradientes, aprendizagem XOR e exportação aprovados; paridade numérica Python × JavaScript (P3) e validação real de navegador/extensão/Worker ainda pendentes.
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).

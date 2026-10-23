@@ -32,3 +32,25 @@ jobs:
 
       - name: Exemplo de inferencia
         run: node examples/linear.mjs
+
+  python:
+    name: Treinamento / Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Testes de gradientes, aprendizado e exportacao
+        run: python -m unittest discover -s training_tests -v
+
+      - name: Exemplo reproduzivel XOR
+        run: python -m examples.train_xor
