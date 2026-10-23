@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Neural Core — browser smoke</title>
+<output id="result">PENDING</output>
+<script type="module">
+  import { loadModel, predict, serializeModel } from '/src/index.js';
+  const output = document.querySelector('#result');
+  try {
+    const response = await fetch('/tests/fixtures/parity.json');
+    if (!response.ok) throw new Error(`Fixture HTTP ${response.status}`);
+    const fixture = await response.json();
+    if (fixture.fixtureVersion !== 1 || fixture.cases.length < 4) throw new Error('Fixture incompleta');
+    let tested = 0;
+    for (const entry of fixture.cases) {
+      const model = loadModel(entry.model);
+      const restored = loadModel(serializeModel(model));
+      for (const sample of entry.samples) {
+        const predicted = predict(model, sample.input);
+        const second = predict(restored, sample.input);
+        if (predicted.length !== sample.expected.length) throw new Error(`${entry.name}: dimensões`);
+        for (let i = 0; i < predicted.length; i += 1) {
+          const expected = sample.expected[i];
+          const tolerance = 1e-5 + 1e-5 * Math.abs(expected);
+          if (!Number.isFinite(predicted[i]) || Math.abs(predicted[i] - expected) > tolerance || predicted[i] !== second[i]) {
+            throw new Error(`${entry.name}: divergência de saída ${i}`);
+          }
+        }
+        tested += 1;
+      }
+    }
+    if (tested < 15) throw new Error('Cobertura insuficiente');
+    output.textContent = `PASS: ${tested} previsões no navegador`;
+    output.dataset.status = 'pass';
+  } catch (error) {
+    output.textContent = `FAIL: ${String(error.message || error)}`;
+    output.dataset.status = 'fail';
+  }
+</script>
+</html>

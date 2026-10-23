@@ -1,6 +1,6 @@
 # Arquitetura inicial do Neural Core
 
-**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) implementados; desempenho e portabilidade em ambientes adicionais (P4) permanecem pendentes.  
+**Estado:** v0.1 parcial: inferência JavaScript e treinamento supervisionado Python implementados. Testes de paridade cruzada (P3) implementados; P4 inclui benchmark Node e teste Chrome headless; runtime em extensão/Workers continua sem validação específica.  
 **Decisão:** desenvolver uma MLP pequena e matematicamente verificável. Não começar com IA generativa.
 
 ## 1. Independência
@@ -114,7 +114,17 @@ O motor de inferência será um módulo ES padrão sem imports exclusivos de Nod
 2. **Inferência JS:** implementar camadas densas, ativações e testes matemáticos.
 3. **Treinamento Python (P2 concluído):** MLP, retropropagação, SGD reproduzível, exportação float32, testes numéricos de gradientes e aprendizagem XOR.
 4. **Integração (P3 concluído):** gerar referências em Python após treinamento, exportar float32, comparar valores no JavaScript e verificar serialização nos casos reproduzíveis.
-5. **Verificação:** rodar testes, benchmark local e exemplo genérico; revisar documentação e segurança.
+5. **Verificação (P4):** benchmark Node para três tamanhos e teste de inferência no Chrome real com fixture P3; métricas informativas e sem thresholds frágeis.
 6. **Expansão futura:** evoluir arquiteturas e otimizações apenas diante de necessidades e evidências; aplicações seguem desacopladas.
 
 **Checkpoint P3:** treino e exportação Python confrontados com inferência JS nos mesmos modelos (XOR treinado, redes lineares de múltiplas saídas, combinações de ativações e sigmoid com entradas extremas). A tolerância de saída é `1e-5 + 1e-5 × abs(referência)` devido ao uso de float32 no JS. A fixture fica versionada para permitir `npm test` independente de Python; um job de integração no CI gera uma fixture fresca em Python para evitar regressões mascaradas por snapshots antigos. Generalização, benchmarks e execução em navegadores/extensões/Workers ainda não foram comprovados. Nenhum projeto consumidor foi modificado.
+
+## P4 — Benchmark e teste real de navegador
+
+- `benchmarks/inference.mjs` informa latência mediana de cinco lotes (200 execuções de aquecimento) em 3 topologias, tempo de importação JSON, tamanho dos parâmetros em `float32` e variação de memória observada. Não há limiar rígido de performance na CI compartilhada.
+- `tests/browser-smoke.html` importa `src/index.js` diretamente do navegador, carrega a fixture Python/JS e compara as previsões dentro da tolerância numérica do P3. A importação e persistência são verificadas no navegador.
+- `scripts/browser-smoke.mjs` disponibiliza somente cinco arquivos locais num servidor HTTP em `127.0.0.1` e abre o Chrome/Chromium headless, sem bibliotecas extras, para conferir o resultado no DOM.
+- O CI adiciona jobs de **Chrome headless** e **benchmark Node 24**, preservando os testes JS/Python/paridade anteriores.
+- **Limites:** benchmarks em runners compartilhados não são medição definitiva de hardware real, não representam memória de uma extensão/PWA e não comprovam execução em Cloudflare Workers. Uma extensão MV3 deve receber uma verificação específica de suas políticas e lifecycle; Workers precisam de uma medição no seu ambiente real.
+
+Detalhes em [performance.md](performance.md).

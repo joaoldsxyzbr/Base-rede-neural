@@ -65,8 +65,24 @@ node --test tests/parity.test.js
 
 O CI inclui também um job separado que gera novamente o conjunto de referência em Python e o utiliza diretamente nos testes JavaScript, impedindo que um arquivo antigo de exemplo esconda regressões. A fixture versionada permite executar `npm test` sem instalar Python. Isso valida paridade numérica nos casos testados, não precisão ou generalização em aplicações reais.
 
+## Desempenho e portabilidade (P4)
+
+Os benchmarks usam modelos genéricos de três tamanhos, aquecimento e mediana de cinco rodadas. Medem tempo de carregamento, latência por previsão, tamanho de pesos e observações de memória no processo Node.js.
+
+```bash
+node benchmarks/inference.mjs
+```
+
+O smoke test usa **um Chrome/Chromium real em modo headless**, HTTP apenas em `127.0.0.1`, módulos JavaScript nativos e modelos de referência do P3. Sem serviços externos ou dependências npm:
+
+```bash
+node scripts/browser-smoke.mjs
+```
+
+Para o teste de navegador, é necessário ter Chrome/Chromium instalado (ou informar `CHROME_BIN` com o caminho do executável). O CI usa a instalação de Chrome do runner Ubuntu. Consulte [metodologia e limites dos benchmarks](docs/performance.md). A execução como extensão Manifest V3 e no Cloudflare Workers continua exigindo testes próprios: compatibilidade no Chrome **não prova** esses cenários.
+
 ## Estado
 
-**Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; validação real de navegador/extensão/Worker e benchmarks (P4) ainda pendentes.
+**Inferência JS, treinamento Python e testes de paridade (P3) implementados.** O CI valida os casos de referência entre linguagens; benchmarks Node e smoke test em navegador adicionados ao CI (P4); validação direta de extensões/Workers permanece pendente.
 
 Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](docs/architecture.md).

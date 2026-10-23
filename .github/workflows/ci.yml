@@ -80,3 +80,37 @@ jobs:
         env:
           NEURAL_CORE_PARITY_FIXTURE: ${{ runner.temp }}/neural-core-parity.json
         run: node --test tests/parity.test.js
+
+  browser:
+    name: Navegador / Chrome headless
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Testar inferencia real no Chrome headless
+        run: node scripts/browser-smoke.mjs
+
+  benchmarks:
+    name: Benchmark / Node 24
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Medir carregamento, inferencia e memoria
+        run: node benchmarks/inference.mjs
