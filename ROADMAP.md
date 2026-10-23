@@ -12,7 +12,7 @@ Esta sequência prepara a **primeira versão reutilizável**, não encerra o des
 | P5 | Extensão independente Manifest V3 | Concluído |
 | P6 | Treinamento seguro e números extremos | Concluído |
 | P7 | Generalização sintética e comparação tradicional | Concluído |
-| P8 | API, documentação, licença, ambiente CI e revisão | Concluído (CI de fechamento em validação) |
+| P8 | API, documentação, licença, ambiente CI e revisão | Concluído — CI de fechamento aprovado |
 
 **Critério final:** pacote v0.1.0, API documentada, licença MIT, SHA-256 do Chrome for Testing fixado, suíte verde e auditoria de limites registrada em `docs/audit.md`. Não há publicação npm nem etiqueta Git criada automaticamente.
 

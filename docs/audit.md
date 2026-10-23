@@ -10,7 +10,7 @@
 - Paridade: fixtures Python e job que gera referência fresca e a compara com execução JS. Testes reais no Chrome e extensão MV3 com popup e service worker.
 - Qualidade científica: avaliação com dados sintéticos de treino/teste separados, ruído e métodos tradicionais; nenhuma alegação de precisão em tarefas reais.
 - CI intermediário do P8: [run 40016217809](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40016217809), **9/9 jobs aprovados**, **26/26 testes JS**, **27/27 Python**, paridade, benchmarks, Chrome e Manifest V3. O Chrome usado teve SHA-256 `e6c94490f0b6b337225aeb2d2a5034858516b7017356980ba94f5176d8774a50`.
-- A revalidação final deve executar o instalador com verificação estrita desse hash, com CI completo novamente.
+- A revalidação final foi concluída no [GitHub Actions 40016584472](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40016584472), commit `e0459610584d0edba502d18c3697cf92d8ce7b68`: **9/9 jobs aprovados**, **26/26 testes JavaScript**, **28/28 testes Python**. O instalador verificou o SHA-256 estritamente e o smoke MV3 registrou `PASS: MV3 popup (19 cases) and service worker`.
 
 ## Organização e contrato
 
@@ -27,4 +27,4 @@
 
 ## Decisão
 
-A arquitetura pode ser reutilizada em projetos experimentais controlados, mantendo os limites claros e o contrato versionado. Novas arquiteturas e otimizações são evolução futura, fora do P8. A aprovação final depende dos jobs de CI após a mudança de SHA-256.
+A arquitetura pode ser reutilizada em projetos experimentais controlados, mantendo os limites claros e o contrato versionado. Novas arquiteturas e otimizações são evolução futura, fora do P8. A aprovação final foi confirmada após a mudança de SHA-256. Nenhum outro escopo/plataforma é assumido como validado.

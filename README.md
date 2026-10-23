@@ -57,6 +57,7 @@ O GitHub Actions executa esses testes, verifica paridade Python×JS e inferênci
 - [Benchmarks](docs/performance.md)
 - [Teste MV3](docs/extension-mv3.md)
 - [Roadmap](ROADMAP.md)
+- [Auditoria final e limitações conhecidas](docs/audit.md)
 - [Segurança](SECURITY.md)
 
 Princípios: simplicidade, universalidade, modularidade, portabilidade, desempenho e custo zero, aprendizado verificável, segurança e privacidade. Aplicativos se adaptam ao núcleo, nunca o contrário.
