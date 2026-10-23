@@ -12,7 +12,7 @@ import urllib.request
 import zipfile
 
 CHROME_VERSION = "156.0.8078.47"
-CHROME_SHA256 = ""  # First CI reports SHA-256, then pin and enforce it.
+CHROME_SHA256 = "e6c94490f0b6b337225aeb2d2a5034858516b7017356980ba94f5176d8774a50"  # Verified Chrome for Testing v156 linux64 artifact.
 CHROME_URL = (
     "https://storage.googleapis.com/chrome-for-testing-public/"
     f"{CHROME_VERSION}/linux64/chrome-linux64.zip"
@@ -57,7 +57,7 @@ def install(destination):
                 digest.update(chunk)
         actual_sha256 = digest.hexdigest()
         print(f"Chrome for Testing {CHROME_VERSION} SHA256: {actual_sha256}", file=sys.stderr)
-        if CHROME_SHA256 and actual_sha256 != CHROME_SHA256:
+        if actual_sha256 != CHROME_SHA256:
             raise ValueError("Hash SHA256 do Chrome diverge do esperado")
         archive.seek(0)
         with zipfile.ZipFile(archive) as package:

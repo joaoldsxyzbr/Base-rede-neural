@@ -12,11 +12,16 @@ _installer = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_installer)
 CHROME_VERSION = _installer.CHROME_VERSION
 CHROME_URL = _installer.CHROME_URL
+CHROME_SHA256 = _installer.CHROME_SHA256
 check_download_url = _installer.check_download_url
 safe_members = _installer.safe_members
 
 
 class InstallerTests(unittest.TestCase):
+    def test_pinned_checksum_is_valid_sha256(self):
+        self.assertEqual(len(CHROME_SHA256), 64)
+        self.assertTrue(all(c in "0123456789abcdef" for c in CHROME_SHA256))
+
     def test_url_restricts_host_platform_and_version(self):
         check_download_url(CHROME_URL)
         for url in (

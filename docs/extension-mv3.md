@@ -52,3 +52,7 @@ Após a primeira execução aprovada, uma repetição do CI falhou porque o scri
 ### Revalidação após a correção
 
 O workflow [40008550827](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40008550827), do commit `69c9b201e6eae7071500f9e90f6af3fb7856cb2d`, **concluiu com sucesso os 8 jobs**. O job MV3 voltou a registrar `PASS: MV3 popup (19 cases) and service worker` usando o teste CDP em tempo real. Isso encerra a instabilidade observada no teste anterior neste ambiente; regressões futuras continuarão sendo detectadas pelo CI.
+
+## P8 — Binário de CI fixado e íntegro
+
+O smoke MV3 usa Chrome for Testing **156.0.8078.47 / linux64**, baixado do armazenamento oficial Google. O script `scripts/install-chrome-for-testing.py` valida origem HTTPS, tamanho, conteúdo do ZIP e o SHA-256 **`e6c94490f0b6b337225aeb2d2a5034858516b7017356980ba94f5176d8774a50`** antes de extrair. O hash foi observado no job `Extensão Manifest V3 / Chrome for Testing` do [CI intermediário P8](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40016217809) e incorporado ao contrato do instalador; a próxima execução do CI valida a comparação estrita. Não é uma dependência do Neural Core em produção.
