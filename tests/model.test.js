@@ -53,3 +53,43 @@ test('rejeita modelos excessivamente grandes antes de alocar matrizes', () => {
   assert.throws(() => loadModel(model), /limite|máximo|inválido|tamanho/i);
   assert.throws(() => loadModel('x'.repeat(25_000_001)), /limite|tamanho/i);
 });
+
+test('expor camadas não permite alterar pesos ou vieses usados na inferência', async () => {
+  const { predict } = await import('../src/index.js');
+  const model = loadModel(valid());
+  const original = Array.from(predict(model, [3, 4]));
+  const exported = serializeModel(model);
+
+  const snapshot = model.layers;
+  snapshot[0].weights[0] = 100;
+  snapshot[0].biases[0] = 200;
+  new DataView(snapshot[0].weights.buffer).setFloat32(4, 500, true);
+  assert.throws(() => { snapshot.push(snapshot[0]); }, TypeError);
+  assert.throws(() => { model.inputSize = 999; }, TypeError);
+
+  assert.deepEqual(Array.from(predict(model, [3, 4])), original);
+  assert.deepEqual(serializeModel(model), exported);
+  assert.equal(model.layers[0].weights[0], 2);
+  assert.equal(model.layers[0].biases[0], 0.5);
+});
+
+test('modelos distintos não compartilham pesos mesmo quando a origem é a mesma', async () => {
+  const { predict } = await import('../src/index.js');
+  const source = valid();
+  const first = loadModel(source);
+  const second = loadModel(source);
+  first.layers[0].weights[0] = 99;
+  assert.deepEqual(Array.from(predict(first, [1, 1])), Array.from(predict(second, [1, 1])));
+  assert.equal(serializeModel(second).layers[0].weights[0], 2);
+});
+
+test('rejeita modelos malformados, grandes e tipos incompatíveis', () => {
+  assert.throws(() => loadModel('{invalid'));
+  assert.throws(() => loadModel(null));
+  assert.throws(() => loadModel([]));
+  assert.throws(() => loadModel({formatVersion: 1, layers: [null]}));
+  assert.throws(() => loadModel({formatVersion: 1, layers: new Array(17).fill(valid().layers[0])}));
+  assert.throws(() => loadModel({...valid(), layers: [{...valid().layers[0], biases: [NaN]}]}));
+  assert.throws(() => loadModel({...valid(), layers: [{...valid().layers[0], weights: new Float32Array([2, -3])}]}));
+  assert.throws(() => loadModel({...valid(), layers: [{...valid().layers[0], biases: [1e100]}]}));
+});

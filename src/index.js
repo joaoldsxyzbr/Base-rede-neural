@@ -1,2 +1,1 @@
-export { loadModel, serializeModel } from './model.js';
-export { predict } from './network.js';
+export { loadModel, serializeModel, predict } from './model.js';

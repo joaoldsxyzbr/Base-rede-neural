@@ -1,5 +1,3 @@
-import { assertLoadedModel } from './model.js';
-
 function activate(value, kind) {
   switch (kind) {
     case 'linear': return value;
@@ -11,9 +9,8 @@ function activate(value, kind) {
   }
 }
 
-export function predict(model, input) {
-  assertLoadedModel(model);
-  if (!(Array.isArray(input) || input instanceof Float32Array) || input.length !== model.inputSize) {
+export function forward(layers, input) {
+  if (!(Array.isArray(input) || input instanceof Float32Array) || input.length !== layers[0].inputSize) {
     throw new TypeError('Entrada inválida: tamanho incompatível');
   }
   let values = new Float32Array(input.length);
@@ -26,7 +23,7 @@ export function predict(model, input) {
     values[i] = item;
   }
 
-  for (const layer of model.layers) {
+  for (const layer of layers) {
     const outputs = new Float32Array(layer.outputSize);
     for (let neuron = 0; neuron < layer.outputSize; neuron += 1) {
       let sum = layer.biases[neuron];

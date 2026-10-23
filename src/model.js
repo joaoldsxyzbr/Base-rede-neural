@@ -1,10 +1,12 @@
+import { forward } from './network.js';
+
 const FORMAT_VERSION = 1;
 const MAX_MODEL_CHARS = 25_000_000;
 const MAX_LAYERS = 16;
 const MAX_NEURONS = 4096;
 const MAX_PARAMETERS = 250_000;
 const ACTIVATIONS = new Set(['linear', 'sigmoid', 'tanh']);
-const loadedModels = new WeakSet();
+const internalLayers = new WeakMap();
 
 function positiveSize(value, label) {
   if (!Number.isSafeInteger(value) || value < 1 || value > MAX_NEURONS) {
@@ -64,26 +66,41 @@ export function loadModel(source) {
     previousOutput = outputSize;
     return Object.freeze({ inputSize, outputSize, activation: layer.activation, weights, biases });
   });
+  // O modelo expõe cópias defensivas: Float32Array não pode ser congelado.
   const model = Object.freeze({
     inputSize: layers[0].inputSize,
     outputSize: previousOutput,
-    layers: Object.freeze(layers)
+    get layers() {
+      return Object.freeze(layers.map(layer => Object.freeze({
+        inputSize: layer.inputSize,
+        outputSize: layer.outputSize,
+        activation: layer.activation,
+        weights: new Float32Array(layer.weights),
+        biases: new Float32Array(layer.biases)
+      })));
+    }
   });
-  loadedModels.add(model);
+  internalLayers.set(model, layers);
   return model;
 }
 
 export function assertLoadedModel(model) {
-  if (!model || typeof model !== 'object' || !loadedModels.has(model)) {
+  if (!model || typeof model !== 'object' || !internalLayers.has(model)) {
     throw new TypeError('Carregue o modelo com loadModel antes de usar');
   }
 }
 
+export function predict(model, input) {
+  assertLoadedModel(model);
+  return forward(internalLayers.get(model), input);
+}
+
 export function serializeModel(model) {
   assertLoadedModel(model);
+  const layers = internalLayers.get(model);
   const raw = {
     formatVersion: FORMAT_VERSION,
-    layers: model.layers.map(layer => ({
+    layers: layers.map(layer => ({
       inputSize: layer.inputSize,
       outputSize: layer.outputSize,
       activation: layer.activation,
@@ -91,7 +108,5 @@ export function serializeModel(model) {
       biases: Array.from(layer.biases)
     }))
   };
-  // Um consumidor pode modificar arrays tipados; revalidar antes de exportar.
-  loadModel(raw);
   return raw;
 }

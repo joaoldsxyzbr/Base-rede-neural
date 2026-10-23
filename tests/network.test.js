@@ -41,3 +41,31 @@ test('inferência não muda pesos e detecta overflow numérico', () => {
   assert.throws(() => predict(model, [1e30]), /finito|numérico|overflow/i);
   assert.equal(model.layers[0].weights[0], Math.fround(1e30));
 });
+
+test('matemática: rede multineurônio de duas camadas corresponde à referência independente', () => {
+  const model = loadModel({formatVersion:1,layers:[
+    {inputSize:3,outputSize:2,activation:'tanh',weights:[0.5,-1,2,3,0.25,-0.5],biases:[0.1,-0.2]},
+    {inputSize:2,outputSize:2,activation:'linear',weights:[-2,0.75,1.5,-0.5],biases:[0.25,2]}
+  ]});
+  const input = [0.8,-0.4,0.2];
+  const a = Math.tanh(0.1 + 0.5*0.8 + -1*-0.4 + 2*0.2);
+  const b = Math.tanh(-0.2 + 3*0.8 + 0.25*-0.4 + -0.5*0.2);
+  const result = predict(model,input);
+  close(result[0],0.25 + -2*a + 0.75*b);
+  close(result[1],2 + 1.5*a - 0.5*b);
+});
+
+test('sigmoid estável para valores extremos', () => {
+  const model = loadModel({formatVersion:1,layers:[{inputSize:1,outputSize:1,activation:'sigmoid',weights:[1],biases:[0]}]});
+  assert.deepEqual(Array.from(predict(model,[1000])),[1]);
+  assert.deepEqual(Array.from(predict(model,[-1000])),[0]);
+  close(predict(model,[0])[0],0.5);
+});
+
+test('resultado não compartilha memória interna nem muda entre previsões', () => {
+  const model = loadModel({formatVersion:1,layers:[{inputSize:1,outputSize:2,activation:'linear',weights:[3,-2],biases:[1,4]}]});
+  const first = predict(model,[2]);
+  assert.deepEqual(Array.from(first),[7,0]);
+  first[0] = 700;
+  assert.deepEqual(Array.from(predict(model,[2])),[7,0]);
+});
