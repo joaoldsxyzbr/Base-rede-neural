@@ -31,7 +31,7 @@ try {
 
   const worker = await Promise.race([
     chrome.runtime.sendMessage({ type: 'neural-core-p5' }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker did not respond')), 8000))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker did not respond')), 15000))
   ]);
   if (!worker?.ok || worker.output !== 24 || !worker.isWorker) {
     throw new Error('Background service worker failed neural inference');

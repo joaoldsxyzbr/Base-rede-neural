@@ -13,7 +13,7 @@ node scripts/extension-smoke.mjs
 
 O primeiro comando roda testes estáticos sobre o manifesto e as origens dos módulos. O segundo requer Chromium ou Chrome for Testing com suporte a extensões `--load-extension` (ou `CHROME_BIN` com caminho apropriado).
 
-O runner cria um diretório temporário, copia os arquivos **originais** `src/index.js`, `src/model.js`, `src/network.js` e `tests/fixtures/parity.json`, e carrega uma extensão MV3 desempacotada. Seu popup compara 19 previsões Python × JS e faz ida e volta `serializeModel`/`loadModel`. Em seguida envia uma mensagem ao **service worker de módulo**, que roda `predict` com entrada `[4,5]` e confirma saída `24`. O runner confere um resultado `PASS` real do DOM carregado a partir de `chrome-extension://`. O resultado é inválido se a extensão não carregar ou se o service worker não responder.
+O runner cria um diretório temporário, copia os arquivos **originais** `src/index.js`, `src/model.js`, `src/network.js` e `tests/fixtures/parity.json`, e carrega uma extensão MV3 desempacotada. O processo de verificação usa o protocolo nativo CDP com relógio real, sem acelerar artificialmente os timers do service worker. Seu popup compara 19 previsões Python × JS e faz ida e volta `serializeModel`/`loadModel`. Em seguida envia uma mensagem ao **service worker de módulo**, que roda `predict` com entrada `[4,5]` e confirma saída `24`. O runner confere um resultado `PASS` real do DOM carregado a partir de `chrome-extension://`. O resultado é inválido se a extensão não carregar ou se o service worker não responder.
 
 ## Segurança e dependências
 
@@ -44,3 +44,7 @@ PASS: MV3 popup (19 cases) and service worker
 ```
 
 Esse resultado comprova a execução de inferência no popup e no service worker MV3 **na configuração do Chrome for Testing do CI**, com os modelos de referência. Não comprova a extensão Dark Reader, Worker Cloudflare, execução em dispositivos móveis, ciclo de vida prolongado ou a publicação na Web Store.
+
+## Correção de intermitência (23/10/2026)
+
+Após a primeira execução aprovada, uma repetição do CI falhou porque o script antigo usava `--dump-dom` com relógio virtual: o temporizador do popup podia vencer antes de o worker iniciar. O novo teste usa o **Chrome DevTools Protocol**, embutido no Chrome e acessado pelo `WebSocket` nativo do Node, com espera em tempo real, tempo limite explícito e verificação do resultado da extensão. A falha anterior foi registrada em [run 40007815157](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40007815157). Essa melhoria não altera o motor neural nem oculta falhas persistentes do service worker.
