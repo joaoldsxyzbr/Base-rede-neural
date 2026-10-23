@@ -139,3 +139,19 @@ jobs:
 
       - name: Verificar extensão real no Chrome
         run: node scripts/extension-smoke.mjs
+
+  scientific-evaluation:
+    name: Qualidade científica / Python 3.13
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+
+      - name: Executar benchmarks com separacao treino e teste
+        run: python -m evaluation.benchmark

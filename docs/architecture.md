@@ -146,3 +146,11 @@ Detalhes em [extension-mv3.md](extension-mv3.md).
 Treinamento Python com commit seguro: `train` valida o modelo usando `export_model`, valida todo o dataset, treina uma cópia local dos pesos e vieses, verifica a perda final e somente então atualiza as listas originais. Em caso de divergência ou exceção durante o cálculo, o objeto original permanece sem mudanças. Treinamento bem-sucedido continua atualizando as listas **in-place** para compatibilidade. A cópia tem limite de 250.000 parâmetros do contrato v1.
 
 A função `dataset_loss` calcula previsão e erro sem a retropropagação. Entradas Python com inteiros grandes demais para conversão finita geram `ValueError` consistente. A exportação rejeita `formatVersion: true` e parâmetros fora do intervalo float32. O runtime JavaScript não mudou; P7 (generalização e comparação de métodos) e P8 (governança, ambiente CI reproduzível) continuam fora do P6.
+
+## P7 — Evidência de generalização e comparação
+
+Foi incluída uma bancada de avaliação **offline**, independente do núcleo, em `evaluation/benchmark.py`. Ela usa conjuntos de treino e teste independentes para duas tarefas sintéticas; calcula acurácia, Brier, erro quadrático médio (MSE), erro absoluto médio (MAE), médias e dispersão em várias sementes. Os baselines são classificador linear, maioria, mínimos quadrados e média constante.
+
+Os experimentos distinguem uma relação genuinamente não linear, em que a MLP pode ter vantagem, de um problema linear, em que um método tradicional é suficiente. O objetivo é verificar aprendizado e generalização **apenas nas distribuições artificiais documentadas**, não alegar superioridade sobre técnicas clássicas em geral. A inferência JavaScript e o treinamento já existentes não sofreram mudança.
+
+Ver [docs/evaluation.md](evaluation.md). P8 (documentação/API/licenciamento e CI reprodutível) permanece como etapa separada.

@@ -108,3 +108,18 @@ Consulte [a arquitetura, o formato dos modelos e as etapas de desenvolvimento](d
 - Novos testes em `training_tests/test_robustness.py` cobrem rollback, atualização in-place, números extremos e ausência de cálculo de gradientes na avaliação.
 
 Execute `python -m unittest discover -s training_tests -v`. Esse isolamento custa uma cópia dos pesos **apenas durante o treinamento offline**; o runtime JS de inferência não foi alterado. Não há bibliotecas adicionais.
+
+## P7 — Avaliação científica reproduzível
+
+O módulo offline `evaluation/benchmark.py` avalia duas tarefas **sintéticas** com conjuntos de treino e teste independentes, sementes explícitas e baselines simples. Não afeta a API pública nem o desempenho da inferência JavaScript.
+
+- **Classificação não linear:** MLP 2→8→1 versus classificador linear sigmoide e frequência da classe majoritária. Mede acurácia e Brier no treino, no conjunto de teste sem ruído e no mesmo conjunto de teste com ruído adicional.
+- **Regressão linear:** camada linear 1→1 versus mínimos quadrados analíticos e predição da média. Mede MSE e MAE no treino e no teste.
+- **Reprodução:** sementes 7, 19 e 31, 96 amostras para treinamento e 128 para teste em cada repetição; reporta médias e desvio-padrão populacional. Não consulta dados de teste para treinar ou selecionar checkpoint.
+
+```bash
+python -m unittest discover -s training_tests -v
+python -m evaluation.benchmark
+```
+
+O CI executa os testes científicos em Python 3.11 e 3.13 e imprime o relatório no job dedicado. Metodologia, resultados locais e limitações: [docs/evaluation.md](docs/evaluation.md). Nenhuma biblioteca adicional é necessária.
