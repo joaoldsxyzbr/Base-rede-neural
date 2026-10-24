@@ -7,6 +7,8 @@ from pathlib import Path
 import struct
 import tempfile
 
+from .network import _ACTIVATIONS
+
 
 _MAX_LAYERS = 16
 _MAX_WIDTH = 4096
@@ -46,7 +48,7 @@ def export_model(model):
             raise ValueError("Dimensões inválidas")
         if previous is not None and input_size != previous:
             raise ValueError("Dimensões entre camadas incompatíveis")
-        if layer.get("activation") not in {"tanh", "sigmoid", "linear", "relu", "softmax"}:
+        if type(layer.get("activation")) is not str or layer["activation"] not in _ACTIVATIONS:
             raise ValueError("Ativação inválida")
         if layer["activation"] == "softmax" and (len(output) != len(layers) - 1 or output_size < 2):
             raise ValueError("softmax exige camada de saída com pelo menos duas unidades")
@@ -86,3 +88,44 @@ def save_model(model, filename):
     finally:
         if temporary_path is not None:
             temporary_path.unlink(missing_ok=True)
+
+
+def get_capabilities():
+    """Contrato comum Python/JS para execução de camadas densas v1.
+
+    Retorna estruturas independentes, para o chamador não alterar o contrato.
+    """
+    return {
+        "formatVersions": [1],
+        "operators": ["dense"],
+        "activations": sorted(_ACTIVATIONS),
+        "limits": {
+            "maxLayers": _MAX_LAYERS,
+            "maxWidth": _MAX_WIDTH,
+            "maxParameters": _MAX_PARAMETERS,
+        },
+    }
+
+
+def describe_model(model):
+    """Descreve modelo exportável sem expor parâmetros ao consumidor."""
+    portable = export_model(model)
+    summaries = []
+    total = 0
+    for layer in portable["layers"]:
+        count = layer["inputSize"] * layer["outputSize"] + layer["outputSize"]
+        total += count
+        summaries.append({
+            "inputSize": layer["inputSize"],
+            "outputSize": layer["outputSize"],
+            "activation": layer["activation"],
+            "parameterCount": count,
+        })
+    return {
+        "formatVersion": 1,
+        "inputSize": portable["layers"][0]["inputSize"],
+        "outputSize": portable["layers"][-1]["outputSize"],
+        "layerCount": len(portable["layers"]),
+        "parameterCount": total,
+        "layers": summaries,
+    }

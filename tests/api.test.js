@@ -16,8 +16,10 @@ test('o pacote preserva as três funções legadas e expõe predictBatch', () =>
   assert.equal(pkg.private, true);
   assert.equal(pkg.license, 'MIT');
   assert.deepEqual(pkg.exports, { '.': './src/index.js' });
-  assert.deepEqual(Object.keys(core).sort(), ['loadModel', 'predict', 'predictBatch', 'serializeModel']);
+  assert.deepEqual(Object.keys(core).sort(), ['describeModel', 'getCapabilities', 'loadModel', 'predict', 'predictBatch', 'serializeModel']);
   assert.equal(core.loadModel, direct.loadModel);
+  assert.equal(core.getCapabilities, direct.getCapabilities);
+  assert.equal(core.describeModel, direct.describeModel);
   assert.equal(core.predict, direct.predict);
   assert.equal(core.predictBatch, direct.predictBatch);
   assert.equal(core.serializeModel, direct.serializeModel);

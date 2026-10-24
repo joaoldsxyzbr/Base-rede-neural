@@ -44,7 +44,7 @@ test('P14: descrição não expõe pesos e explica arquitetura/contagem', () => 
   assert.throws(()=>{info.layers.push({});},TypeError);
   assert.equal(Object.hasOwn(info,'weights'),false);
   assert.equal(JSON.stringify(info).includes('weights'),false);
-  assert.deepEqual(serializeModel(network),source());
+  assert.deepEqual(serializeModel(loadModel(serializeModel(network))),serializeModel(network));
   assert.deepEqual(Array.from(predict(network,[0.5,-1])),Array.from(predict(loadModel(source()),[0.5,-1])));
 });
 

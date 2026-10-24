@@ -1,3 +1,6 @@
+/** Ativações suportadas por inferência; usar também no validador v1. */
+export const SUPPORTED_ACTIVATIONS = Object.freeze(['linear', 'relu', 'sigmoid', 'softmax', 'tanh']);
+
 function activate(value, kind) {
   switch (kind) {
     case 'linear': return value;
