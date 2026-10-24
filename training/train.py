@@ -51,7 +51,8 @@ def _state(network):
 
 def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
           batch_size=1, optimizer="sgd", momentum=0.9,
-          beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01, loss="mse"):
+          beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01, loss="mse",
+          validation_dataset=None, patience=None, min_delta=0.0, record_history=False):
     """SGD, momentum ou AdamW. Pesos originais só mudam depois do sucesso completo.
 
     Defaults preservam o SGD por amostra da v0.1.0. Estados dos otimizadores
@@ -61,6 +62,15 @@ def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
         raise ValueError("epochs deve ser inteiro entre 1 e 1000000")
     if type(batch_size) is not int or not 1 <= batch_size <= 100_000:
         raise ValueError("batch_size deve ser inteiro positivo até 100000")
+    if type(record_history) is not bool:
+        raise ValueError("record_history deve ser booleano")
+    if patience is not None and (type(patience) is not int or patience < 1):
+        raise ValueError("patience deve ser inteiro positivo")
+    min_delta = _finite_float(min_delta, "min_delta")
+    if min_delta < 0:
+        raise ValueError("min_delta não pode ser negativo")
+    if validation_dataset is None and (patience is not None or min_delta != 0):
+        raise ValueError("patience/min_delta exigem conjunto de validação")
     if optimizer not in ("sgd", "momentum", "adamw"):
         raise ValueError("Otimizador inválido")
     if type(seed) is not int:
@@ -78,19 +88,34 @@ def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
     export_model(network)
     validate_loss(network, loss)
     samples = _samples(network, dataset, loss)
+    validation = _samples(network, validation_dataset, loss) if validation_dataset is not None else None
+    if validation is not None:
+        training_features = {tuple(x) for x, _ in samples}
+        if any(tuple(x) in training_features for x, _ in validation):
+            raise ValueError("Conjuntos de treino e validação compartilham entradas")
 
     candidate = {"formatVersion": 1, "layers": [
         {**layer, "weights": layer["weights"][:], "biases": layer["biases"][:]}
         for layer in network["layers"]
     ]}
     initial_loss = _mean_loss(candidate, samples, loss)
+    initial_val = _mean_loss(candidate, validation, loss) if validation is not None else None
+    best_val = initial_val
+    best_epoch = 0
+    best_parameters = [
+        (layer["weights"][:], layer["biases"][:]) for layer in candidate["layers"]
+    ] if validation is not None else None
+    history = [{"epoch": 0, "trainLoss": initial_loss,
+                **({"validationLoss": initial_val} if validation is not None else {})}] if record_history else None
+    stale_epochs = 0
+    epochs_run = 0
     rng = random.Random(seed)
     order = list(range(len(samples)))
     first_moment = _state(candidate) if optimizer != "sgd" else None
     second_moment = _state(candidate) if optimizer == "adamw" else None
     step = 0
 
-    for _ in range(epochs):
+    for epoch in range(1, epochs + 1):
         rng.shuffle(order)
         for start in range(0, len(order), batch_size):
             indices = order[start:start + batch_size]
@@ -134,10 +159,43 @@ def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
                             raise ValueError("Treinamento divergiu; ajuste a taxa de aprendizado")
                         params[j] = next_value
 
+        epochs_run = epoch
+        # Validacao determina somente a selecao do checkpoint, nunca gradientes.
+        epoch_validation = _mean_loss(candidate, validation, loss) if validation is not None else None
+        if validation is not None:
+            if epoch_validation < best_val - min_delta:
+                best_val = epoch_validation
+                best_epoch = epoch
+                best_parameters = [
+                    (layer["weights"][:], layer["biases"][:]) for layer in candidate["layers"]
+                ]
+                stale_epochs = 0
+            else:
+                stale_epochs += 1
+        if record_history:
+            history.append({"epoch": epoch,
+                            "trainLoss": _mean_loss(candidate, samples, loss),
+                            **({"validationLoss": epoch_validation} if validation is not None else {})})
+        if validation is not None and patience is not None and stale_epochs >= patience:
+            break
+
+    if validation is not None:
+        for layer, (weights, biases) in zip(candidate["layers"], best_parameters):
+            layer["weights"][:] = weights
+            layer["biases"][:] = biases
     final_loss = _mean_loss(candidate, samples, loss)
     # Valor finito em float64 pode não caber em float32 (contrato JS).
     export_model(candidate)
     for original, trained in zip(network["layers"], candidate["layers"]):
         original["weights"][:] = trained["weights"]
         original["biases"][:] = trained["biases"]
-    return {"initialLoss": initial_loss, "finalLoss": final_loss, "epochs": epochs}
+    result = {"initialLoss": initial_loss, "finalLoss": final_loss, "epochs": epochs}
+    if validation is not None:
+        result.update({"initialValidationLoss": initial_val,
+                       "bestValidationLoss": best_val,
+                       "bestEpoch": best_epoch,
+                       "epochsRun": epochs_run,
+                       "stoppedEarly": epochs_run < epochs})
+    if record_history:
+        result["history"] = history
+    return result

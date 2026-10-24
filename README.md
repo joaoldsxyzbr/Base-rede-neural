@@ -44,10 +44,11 @@ O treinamento é isolado: se falhar ou gerar pesos fora do intervalo float32, os
 npm test
 python -m unittest discover -s training_tests -v
 python -m evaluation.benchmark
+python -m evaluation.quality
 node benchmarks/inference.mjs
 ```
 
-O GitHub Actions executa esses testes, verifica paridade Python×JS e inferência no Chrome headless e em uma extensão MV3 (popup e service worker). Chrome é ferramenta de CI, **não** dependência do núcleo. Dados de avaliação são sintéticos.
+O GitHub Actions executa esses testes e `python -m evaluation.quality` (protocolo com treino/validação/teste), verifica paridade Python×JS e inferência no Chrome headless e em uma extensão MV3 (popup e service worker). Chrome é ferramenta de CI, **não** dependência do núcleo. Dados de avaliação são sintéticos.
 
 ## Documentação
 
@@ -55,7 +56,7 @@ O GitHub Actions executa esses testes, verifica paridade Python×JS e inferênci
 - [Treinamento avançado P10](docs/training.md)
 - [Política de compatibilidade e versionamento](docs/compatibility.md)
 - [Arquitetura atual](docs/architecture.md)
-- [Experimentos e baselines](docs/evaluation.md)
+- [Experimentos, validação P11 e baselines](docs/evaluation.md)
 - [Benchmarks](docs/performance.md)
 - [Teste MV3](docs/extension-mv3.md)
 - [Roadmap](ROADMAP.md)

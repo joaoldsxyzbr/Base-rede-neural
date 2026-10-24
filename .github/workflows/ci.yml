@@ -155,3 +155,6 @@ jobs:
 
       - name: Executar benchmarks com separacao treino e teste
         run: python -m evaluation.benchmark
+
+      - name: Validar modelos com early stopping e teste independente
+        run: python -m evaluation.quality
