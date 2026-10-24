@@ -26,7 +26,7 @@ const saved = JSON.stringify(serializeModel(model));
 ] }
 ```
 
-Camadas densas em ordem, pesos achatados por neurônio de saída `weights[output][input]` e vieses por saída. Ativações permitidas: `linear`, `sigmoid`, `tanh`. Camadas conectadas têm dimensões compatíveis. Limites: **16 camadas**, **4.096 unidades por dimensão**, **250.000 parâmetros totais** (pesos + vieses), **25 milhões de caracteres para strings JSON**. O limite de caracteres não se aplica a objetos já materializados. O consumo total de memória depende do ambiente.
+Camadas densas em ordem, pesos achatados por neurônio de saída `weights[output][input]` e vieses por saída. Ativações permitidas: `linear`, `sigmoid`, `tanh`, `relu` e `softmax` (somente na última camada, com duas ou mais saídas). Camadas conectadas têm dimensões compatíveis. Limites: **16 camadas**, **4.096 unidades por dimensão**, **250.000 parâmetros totais** (pesos + vieses), **25 milhões de caracteres para strings JSON**. O limite de caracteres não se aplica a objetos já materializados. O consumo total de memória depende do ambiente.
 
 Dados não numéricos, `NaN`, infinito, valores que excedem float32, dimensões e versões inválidas são rejeitados; valores muito pequenos podem arredondar para zero. `formatVersion` precisa ser exatamente `1`. Campos desconhecidos não pertencem ao contrato e podem ser ignorados. O serializador em JS elimina campos desconhecidos; modelos v2 não são interpretados como v1. Veja [política de compatibilidade](compatibility.md).
 
@@ -36,11 +36,13 @@ Modelos de fontes não confiáveis devem ser obtidos/preferencialmente analisado
 
 ## Python offline
 
-- `training.network.create_network(sizes, activations, seed=0)`: inicializa camadas densas.
+- `training.network.create_network(sizes, activations, seed=0)`: inicializa camadas densas (He uniforme para ReLU, Xavier uniforme para as demais).
 - `training.network.predict(network, inputs)`: inferência Python de referência.
-- `training.train.train(network, dataset, epochs=1000, learning_rate=0.1, seed=0)`: SGD, atualização apenas após sucesso **e validação final de exportabilidade float32**; retorna perda inicial/final e épocas. Falha preserva pesos e referências internas originais.
-- `training.train.dataset_loss(network, dataset)`: cálculo de perda sem gradientes.
+- `training.train.train(network, dataset, epochs=1000, learning_rate=0.1, seed=0, batch_size=1, optimizer='sgd', momentum=0.9, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01, loss='mse')`: treino reproduzível por SGD, momentum ou AdamW com mini-batches. Defaults preservam o SGD por amostra. Atualização apenas após sucesso **e validação final de exportabilidade float32**; retorna as mesmas chaves `initialLoss`, `finalLoss` e `epochs`. Falha preserva pesos e referências internas originais.
+- `training.train.dataset_loss(network, dataset, loss='mse')`: cálculo de perda sem gradientes. Também são suportadas `bce` (sigmoid, saída escalar) e `cce` (softmax, saída multiclasse); objetivos fora dessas combinações são rejeitados.
 - `training.export.export_model(network)` e `save_model(network, filename)`: exportação JSON v1 float32. `save_model` grava primeiro um arquivo temporário no mesmo diretório, faz flush/fsync e o substitui com `os.replace`, removendo o temporário em caso de erro. Uma falha antes da substituição preserva o arquivo anterior; isso **não** garante durabilidade do diretório em queda de energia.
+
+Os estados de momentum/AdamW existem apenas durante a chamada de treinamento, não são serializados nem retomados implicitamente. AdamW aplica weight decay aos pesos, não aos vieses. Consulte [treinamento avançado](training.md) para fórmulas, exemplos e limitações.
 
 Não há treino automático no runtime JS nem garantia de convergência. O aplicativo consumidor cuida de normalizar vetores, carregar modelos, interpretar saídas e armazenar arquivos.
 

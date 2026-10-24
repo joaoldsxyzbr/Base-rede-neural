@@ -9,7 +9,7 @@ Uma base neural pequena, genérica e reutilizável. **Python treina offline; Jav
 | Área | Responsabilidade |
 | --- | --- |
 | `src/` | API ES Modules, validação de modelo e inferência float32 |
-| `training/` | MLP, gradientes, SGD e exportação em Python padrão |
+| `training/` | MLP, gradientes, SGD/momentum/AdamW, mini-batches, classificação e exportação em Python padrão |
 | `evaluation/` | Experimentos e comparação com baselines tradicionais |
 | `tests/` | Testes nativos Node, paridade, navegador e Manifest V3 |
 | `training_tests/` | Testes Python matemáticos, numéricos, científicos e de ferramentas |
@@ -17,7 +17,7 @@ Uma base neural pequena, genérica e reutilizável. **Python treina offline; Jav
 | `scripts/` | Ferramentas de teste/CI; não integram o runtime |
 | `docs/` | Contratos e evidências |
 
-O contrato `formatVersion: 1` aceita MLP densa, ativações `linear`, `tanh` e `sigmoid`, pesos em `[saída][entrada]` e vieses. O treinamento usa números de precisão dupla Python e exporta pesos float32; o JavaScript usa `Float32Array`. Confira os detalhes em [api.md](api.md).
+O contrato `formatVersion: 1` aceita MLP densa, ativações `linear`, `tanh`, `sigmoid`, `relu` e `softmax` (apenas na saída), pesos em `[saída][entrada]` e vieses. O treinamento usa números de precisão dupla Python e exporta pesos float32; o JavaScript usa `Float32Array`. Confira os detalhes em [api.md](api.md).
 
 Os parâmetros internos não são modificáveis por consumidores via `model.layers` (que retorna cópias). O treinamento Python preserva os pesos originais caso uma execução falhe.
 
@@ -27,7 +27,8 @@ Os parâmetros internos não são modificáveis por consumidores via `model.laye
 - **P4–P5:** benchmarks Node, smoke test real Chrome headless e extensão Manifest V3 isolada.
 - **P6:** integridade do treinamento com commit seguro e validação numérica.
 - **P7:** conjuntos artificiais de treino/teste separados, ruído e comparação com métodos tradicionais.
-- **P8:** contrato API, documentação, licenciamento, validação de ambiente e revisão final.
+- **P8–P9:** contrato API, documentação, licenciamento, validação de ambiente, persistência segura e revisão.
+- **P10:** mini-batches, momentum, AdamW, ReLU/He, BCE, softmax/CCE e paridade Python × JS.
 
 Resultados de generalização estão restritos às distribuições artificiais de [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
 

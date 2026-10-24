@@ -5,7 +5,7 @@ const MAX_MODEL_CHARS = 25_000_000;
 const MAX_LAYERS = 16;
 const MAX_NEURONS = 4096;
 const MAX_PARAMETERS = 250_000;
-const ACTIVATIONS = new Set(['linear', 'sigmoid', 'tanh']);
+const ACTIVATIONS = new Set(['linear', 'sigmoid', 'tanh', 'relu', 'softmax']);
 const internalLayers = new WeakMap();
 
 function positiveSize(value, label) {
@@ -57,6 +57,9 @@ export function loadModel(source) {
     }
     if (!ACTIVATIONS.has(layer.activation)) {
       throw new TypeError(`Camada ${index}: ativação inválida`);
+    }
+    if (layer.activation === 'softmax' && (index !== source.layers.length - 1 || outputSize < 2)) {
+      throw new RangeError('softmax exige camada de saída com pelo menos duas unidades');
     }
     const weightCount = inputSize * outputSize;
     totalParameters += weightCount + outputSize;

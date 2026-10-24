@@ -1,13 +1,15 @@
-"""SGD reproduzível em dados locais, sem chamadas externas."""
+"""Treinamento MLP reproduzível em Python padrão, com atualização transacional."""
 
 import math
 import random
 
-from .network import _finite_float, _vector, loss_and_gradients, predict
+from .network import (
+    _finite_float, _vector, loss_and_gradients, sample_loss, validate_loss, validate_target,
+)
 from .export import export_model
 
 
-def _samples(network, dataset):
+def _samples(network, dataset, loss):
     if not isinstance(dataset, (list, tuple)) or not dataset:
         raise ValueError("Dataset deve conter amostras")
     input_size = network["layers"][0]["inputSize"]
@@ -18,66 +20,122 @@ def _samples(network, dataset):
             raise ValueError("Amostra deve ser par (entrada, alvo)")
         x = list(_vector(sample[0], input_size, "Entrada"))
         y = list(_vector(sample[1], output_size, "Alvo"))
+        validate_target(y, loss)
         samples.append((x, y))
     return samples
 
 
-def _mean_loss(network, samples):
+def _mean_loss(network, samples, loss="mse"):
     """Evaluate predictions without the backward pass."""
     total = 0.0
     for inputs, targets in samples:
-        residuals = [actual - target for actual, target in zip(predict(network, inputs), targets)]
-        total += 0.5 * sum(value * value for value in residuals)
+        total += sample_loss(network, inputs, targets, loss=loss)
     result = total / len(samples)
     if not math.isfinite(result):
         raise ValueError("Perda média não finita")
     return result
 
 
-def dataset_loss(network, dataset):
-    """Média da perda 1/2 * soma dos erros quadráticos por exemplo."""
-    return _mean_loss(network, _samples(network, dataset))
+def dataset_loss(network, dataset, *, loss="mse"):
+    """Média da perda selecionada por exemplo, sem gradientes."""
+    validate_loss(network, loss)
+    return _mean_loss(network, _samples(network, dataset, loss), loss)
 
 
-def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0):
-    """Reproducible SGD. Commit updates only when every epoch succeeds.
+def _state(network):
+    return [{
+        field: [0.0] * len(layer[field])
+        for field in ("weights", "biases")
+    } for layer in network["layers"]]
 
-    A failed training run leaves the caller's network (and parameter lists) unchanged.
-    Successful runs continue to update the original parameter lists in place.
+
+def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
+          batch_size=1, optimizer="sgd", momentum=0.9,
+          beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01, loss="mse"):
+    """SGD, momentum ou AdamW. Pesos originais só mudam depois do sucesso completo.
+
+    Defaults preservam o SGD por amostra da v0.1.0. Estados dos otimizadores
+    ficam apenas nesta chamada; cada invocação inicia um treinamento novo.
     """
     if type(epochs) is not int or not 1 <= epochs <= 1_000_000:
         raise ValueError("epochs deve ser inteiro entre 1 e 1000000")
-    learning_rate = _finite_float(learning_rate, "learning_rate")
-    if learning_rate <= 0:
-        raise ValueError("learning_rate deve ser finito e positivo")
+    if type(batch_size) is not int or not 1 <= batch_size <= 100_000:
+        raise ValueError("batch_size deve ser inteiro positivo até 100000")
+    if optimizer not in ("sgd", "momentum", "adamw"):
+        raise ValueError("Otimizador inválido")
     if type(seed) is not int:
         raise ValueError("seed deve ser um inteiro")
-    export_model(network)  # Validate the versioned architecture and parameters before training.
-    samples = _samples(network, dataset)  # Validate the entire dataset before updating anything.
+    learning_rate = _finite_float(learning_rate, "learning_rate")
+    momentum = _finite_float(momentum, "momentum")
+    beta1 = _finite_float(beta1, "beta1")
+    beta2 = _finite_float(beta2, "beta2")
+    epsilon = _finite_float(epsilon, "epsilon")
+    weight_decay = _finite_float(weight_decay, "weight_decay")
+    if learning_rate <= 0 or epsilon <= 0 or weight_decay < 0:
+        raise ValueError("learning_rate/epsilon devem ser positivos e weight_decay não negativo")
+    if not 0 <= momentum < 1 or not 0 <= beta1 < 1 or not 0 <= beta2 < 1:
+        raise ValueError("momentum e betas devem estar no intervalo [0, 1)")
+    export_model(network)
+    validate_loss(network, loss)
+    samples = _samples(network, dataset, loss)
 
-    # Isolate all intermediate SGD updates so a numerical divergence is recoverable.
     candidate = {"formatVersion": 1, "layers": [
         {**layer, "weights": layer["weights"][:], "biases": layer["biases"][:]}
         for layer in network["layers"]
     ]}
-    initial_loss = _mean_loss(candidate, samples)
+    initial_loss = _mean_loss(candidate, samples, loss)
     rng = random.Random(seed)
     order = list(range(len(samples)))
+    first_moment = _state(candidate) if optimizer != "sgd" else None
+    second_moment = _state(candidate) if optimizer == "adamw" else None
+    step = 0
+
     for _ in range(epochs):
         rng.shuffle(order)
-        for index in order:
-            inputs, targets = samples[index]
-            _, gradients = loss_and_gradients(candidate, inputs, targets)
-            for layer, gradient in zip(candidate["layers"], gradients):
+        for start in range(0, len(order), batch_size):
+            indices = order[start:start + batch_size]
+            mean_gradients = _state(candidate)
+            for index in indices:
+                x, y = samples[index]
+                _, gradients = loss_and_gradients(candidate, x, y, loss=loss)
+                for accumulated, gradient in zip(mean_gradients, gradients):
+                    for field in ("weights", "biases"):
+                        for j, value in enumerate(gradient[field]):
+                            accumulated[field][j] += value
+            step += 1
+            for layer_index, (layer, gradients) in enumerate(zip(candidate["layers"], mean_gradients)):
                 for field in ("weights", "biases"):
-                    for j in range(len(layer[field])):
-                        next_value = layer[field][j] - learning_rate * gradient[field][j]
+                    params = layer[field]
+                    for j in range(len(params)):
+                        gradient = gradients[field][j] / len(indices)
+                        if not math.isfinite(gradient):
+                            raise ValueError("Gradiente não finito")
+                        if optimizer == "sgd":
+                            update = gradient
+                            next_value = params[j] - learning_rate * update
+                        elif optimizer == "momentum":
+                            velocity = first_moment[layer_index][field]
+                            velocity[j] = momentum * velocity[j] + gradient
+                            next_value = params[j] - learning_rate * velocity[j]
+                        else:
+                            m = first_moment[layer_index][field]
+                            v = second_moment[layer_index][field]
+                            m[j] = beta1 * m[j] + (1.0 - beta1) * gradient
+                            v[j] = beta2 * v[j] + (1.0 - beta2) * gradient * gradient
+                            if not math.isfinite(m[j]) or not math.isfinite(v[j]):
+                                raise ValueError("Estado do otimizador não finito")
+                            corrected_m = m[j] / (1.0 - beta1 ** step)
+                            corrected_v = v[j] / (1.0 - beta2 ** step)
+                            update = corrected_m / (math.sqrt(corrected_v) + epsilon)
+                            # AdamW regulariza pesos, nunca vieses.
+                            decay = learning_rate * weight_decay * params[j] if field == "weights" else 0.0
+                            next_value = params[j] - decay - learning_rate * update
                         if not math.isfinite(next_value):
                             raise ValueError("Treinamento divergiu; ajuste a taxa de aprendizado")
-                        layer[field][j] = next_value
-    final_loss = _mean_loss(candidate, samples)
-    # Treinamento em float64 pode produzir valores finitos que nao cabem em float32.
-    # Nunca confirme pesos que nao podem ser carregados pelo runtime JavaScript.
+                        params[j] = next_value
+
+    final_loss = _mean_loss(candidate, samples, loss)
+    # Valor finito em float64 pode não caber em float32 (contrato JS).
     export_model(candidate)
     for original, trained in zip(network["layers"], candidate["layers"]):
         original["weights"][:] = trained["weights"]
