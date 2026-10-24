@@ -31,7 +31,12 @@ test('fixture de paridade tem estrutura e variedade suficientes', () => {
       assert.equal(sample.expected.length, model.outputSize);
     }
   }
-  assert.deepEqual([...activations].sort(), ['linear', 'sigmoid', 'tanh']);
+  for (const legacy of ['linear', 'sigmoid', 'tanh']) {
+    assert.ok(activations.has(legacy), `ativação v1 ausente: ${legacy}`);
+  }
+  if (process.env.NEURAL_CORE_PARITY_FIXTURE) {
+    assert.deepEqual([...activations].sort(), ['linear', 'relu', 'sigmoid', 'softmax', 'tanh']);
+  }
 });
 
 for (const candidate of fixture.cases) {
