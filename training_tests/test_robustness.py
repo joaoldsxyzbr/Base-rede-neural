@@ -75,6 +75,21 @@ class RobustnessTests(unittest.TestCase):
             train(network, [([1], [1])], epochs=3)
         self.assertEqual(repr(network), previous)
 
+    def test_float32_overflow_after_training_does_not_commit(self):
+        """A etapa final deve preservar o modelo se os pesos nao couberem em float32."""
+        network = create_network([1, 1], ["linear"], seed=3)
+        previous = repr(network)
+        weights = network["layers"][0]["weights"]
+        biases = network["layers"][0]["biases"]
+
+        # SGD termina com perda e parametros finitos em float64, mas bias > float32.
+        with self.assertRaisesRegex(ValueError, "float32"):
+            train(network, [([0.0], [1e19])], epochs=1, learning_rate=1e20, seed=3)
+
+        self.assertEqual(repr(network), previous)
+        self.assertIs(network["layers"][0]["weights"], weights)
+        self.assertIs(network["layers"][0]["biases"], biases)
+
 
 if __name__ == "__main__":
     unittest.main()
