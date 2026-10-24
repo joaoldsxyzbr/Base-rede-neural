@@ -60,6 +60,7 @@ O GitHub Actions executa esses testes e `python -m evaluation.quality` (protocol
 - [Arquitetura atual](docs/architecture.md)
 - [Experimentos, validação P11 e baselines](docs/evaluation.md)
 - [Benchmarks](docs/performance.md)
+- [Matriz de portabilidade P13](docs/portability.md)
 - [Teste MV3](docs/extension-mv3.md)
 - [Roadmap](ROADMAP.md)
 - [Auditoria final e limitações conhecidas](docs/audit.md)

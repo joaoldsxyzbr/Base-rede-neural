@@ -21,8 +21,7 @@ const port = await new Promise((resolve, reject) => {
 const child = spawn(process.execPath, [
   cli, 'dev', 'tests/worker-smoke.js', '--local',
   '--ip', '127.0.0.1', '--port', String(port),
-  '--compatibility-date', '2026-10-24',
-  '--no-inspector'
+  '--compatibility-date', '2026-10-24'
 ], {
   cwd: root,
   env: {

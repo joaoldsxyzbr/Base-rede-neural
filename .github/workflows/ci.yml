@@ -161,3 +161,51 @@ jobs:
 
       - name: Validar modelos com early stopping e teste independente
         run: python -m evaluation.quality
+
+  cross-browser:
+    name: Portabilidade / Firefox e WebKit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Instalar Playwright oficial da Microsoft apenas no CI
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.64.1
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+      - name: Instalar Firefox e WebKit para teste
+        run: npx playwright install --with-deps firefox webkit
+
+      - name: Testar inferencia no Firefox, WebKit e WebKit emulado mobile
+        run: node scripts/cross-browser-smoke.mjs
+
+  workers-local:
+    name: Portabilidade / Cloudflare workerd local
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CLOUDFLARE_SEND_METRICS: 'false'
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Instalar Wrangler oficial da Cloudflare apenas no CI
+        run: npm install --no-save --no-package-lock wrangler@4.152.0
+
+      - name: Testar Neural Core no workerd sem conta ou deploy
+        run: node scripts/worker-smoke.mjs

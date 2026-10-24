@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { firefox, webkit } from 'playwright';
+import { firefox, webkit, devices } from 'playwright';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const routes = new Map([
@@ -32,10 +32,10 @@ const server = createServer(async (request, response) => {
   }
 });
 
-async function check(name, browserType, url) {
+async function check(name, browserType, url, contextOptions = {}) {
   const browser = await browserType.launch({ headless: true });
   try {
-    const context = await browser.newContext();
+    const context = await browser.newContext(contextOptions);
     try {
       // Impede chamadas de rede externas: apenas nosso servidor loopback é autorizado.
       await context.route('**/*', route => {
@@ -52,7 +52,7 @@ async function check(name, browserType, url) {
       await page.waitForFunction(() => {
         const status = document.querySelector('#result')?.dataset.status;
         return status === 'pass' || status === 'fail';
-      }, { timeout: 20_000 });
+      }, null, { timeout: 20_000 });
       const state = await page.locator('#result').evaluate(el => ({
         status: el.dataset.status, text: el.textContent
       }));
@@ -79,6 +79,7 @@ try {
                                ['WebKit (Linux Playwright build)', webkit]]) {
     await check(name, type, url);
   }
+  await check('WebKit (emulação móvel; não é Safari/iOS físico)', webkit, url, devices['iPhone 13']);
 } finally {
   await new Promise(resolve => server.close(resolve));
 }
