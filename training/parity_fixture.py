@@ -25,11 +25,15 @@ def build_fixture():
     sigmoid["layers"][0]["weights"] = [1.0]
     sigmoid["layers"][0]["biases"] = [0.0]
 
+    relu = create_network([2, 3, 2], ["relu", "linear"], seed=15)
+    softmax = create_network([2, 3], ["softmax"], seed=9)
     cases = [
         ("xor-trained", xor, [[0, 0], [0, 1], [1, 0], [1, 1], [0.3, 0.8], [-0.2, 1.2]]),
         ("linear-multi-output", linear, [[0, 0, 0], [1.5, -3.2, 0.25], [-1, 1, 2]]),
         ("mixed-activations", mixed, [[0.0, 0.0, 0.0], [0.1, -0.6, 1.3], [-2, 3, -4]]),
         ("stable-sigmoid", sigmoid, [[-1000], [-120], [-0.01], [0], [0.01], [120], [1000]]),
+        ("relu-hidden", relu, [[1, -2], [0, 0], [-0.4, 0.3], [3.1, 0.25]]),
+        ("softmax-output", softmax, [[0, 0], [1, 2], [-2, 3], [1000, -1000]]),
     ]
     result = []
     for name, trained, inputs in cases:
