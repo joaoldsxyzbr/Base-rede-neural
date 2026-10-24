@@ -69,10 +69,9 @@ class ValidationTrainingTests(unittest.TestCase):
             net = create_network([1, 1], ["sigmoid"], seed=2)
             original = copy.deepcopy(net)
             lists = [net["layers"][0]["weights"], net["layers"][0]["biases"]]
+            options = {"epochs": 4, "learning_rate": 0.05, "loss": "bce", **invalid}
             with self.subTest(options=invalid), self.assertRaises(ValueError):
-                train(net, self.samples, epochs=4, learning_rate=0.05, loss="bce",
-                      **{k: v for k, v in invalid.items() if k != "loss"},
-                      **({"loss": invalid["loss"]} if "loss" in invalid else {}))
+                train(net, self.samples, **options)
             self.assertEqual(net, original)
             self.assertIs(net["layers"][0]["weights"], lists[0])
             self.assertIs(net["layers"][0]["biases"], lists[1])
