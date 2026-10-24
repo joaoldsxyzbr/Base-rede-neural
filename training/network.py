@@ -87,7 +87,7 @@ def _derivative(output, kind):
 
 
 def validate_loss(model, loss):
-    if loss not in _LOSSES:
+    if type(loss) is not str or loss not in _LOSSES:
         raise ValueError("Função de perda inválida")
     final = model["layers"][-1]
     activation = final["activation"]

@@ -4,7 +4,7 @@ O Neural Core mantém versões distintas para o **pacote** (`package.json`, atua
 
 ## Compromissos do formato v1
 
-- Modelos v1 já válidos continuam carregáveis na API JavaScript existente: `loadModel`, `predict`, `serializeModel`.
+- Modelos v1 já válidos continuam carregáveis na API JavaScript existente: `loadModel`, `predict`, `serializeModel`. **Leitores anteriores ao P10 não reconhecem os novos nomes de ativação**; um aplicativo que consome um modelo ReLU/softmax deve atualizar o runtime. Compatibilidade retroativa não significa compatibilidade com leitores antigos.
 - O contrato suporta camadas densas, ativações legadas `linear`, `tanh`, `sigmoid` e, desde P10, `relu` e `softmax` (apenas na saída com pelo menos duas classes), pesos na ordem [saída][entrada] e vieses de saída. Nenhum modelo v1 antigo mudou de significado.
 - A API não depende de plataforma, projeto consumidor, rede, telemetria nem dependências adicionais.
 - Campos extras em modelos v1 são ignorados pelo leitor JavaScript e não reaparecem após `serializeModel`. Eles **não** podem ser usados para alterar o significado dos campos conhecidos.

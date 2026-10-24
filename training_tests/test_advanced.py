@@ -123,6 +123,7 @@ class AdvancedTrainingTests(unittest.TestCase):
             {"optimizer": "rmsprop"}, {"batch_size": 0}, {"batch_size": 1.5},
             {"momentum": 1}, {"beta1": 1}, {"beta2": -0.5}, {"epsilon": 0},
             {"weight_decay": -1}, {"loss": "cce"}, {"loss": "bce", "batch_size": -1},
+            {"loss": []},
         ]
         for options in cases:
             with self.subTest(options=options), self.assertRaises(ValueError):
