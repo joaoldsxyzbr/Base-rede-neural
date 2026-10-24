@@ -105,6 +105,15 @@ class AdvancedTrainingTests(unittest.TestCase):
         self.assertEqual(predict(multi, [1]), [1.0, 0.0])
         self.assertAlmostEqual(loss_and_gradients(multi, [1], [0, 1], loss="cce")[0], 2000.0)
 
+    def test_adamw_rejeita_overflow_de_estado_sem_alterar_pesos(self):
+        model = create_network([1, 1], ["sigmoid"], seed=2)
+        model["layers"][0]["weights"][:] = [1.0]
+        previous = copy.deepcopy(model)
+        with self.assertRaises(ValueError):
+            train(model, [([1e200], [0])], epochs=1,
+                  learning_rate=0.1, optimizer="adamw", loss="bce")
+        self.assertEqual(model, previous)
+
     def test_validacao_preserva_modelo_e_parametros_anteriores(self):
         model = create_network([2, 3, 1], ["relu", "sigmoid"], seed=2)
         before = copy.deepcopy(model)
