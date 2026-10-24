@@ -8,7 +8,7 @@ Uma base neural pequena, genérica e reutilizável. **Python treina offline; Jav
 
 | Área | Responsabilidade |
 | --- | --- |
-| `src/` | API ES Modules, validação de modelo e inferência float32 |
+| `src/` | API ES Modules, validação de modelo, inferência float32 e lote com buffers temporários |
 | `training/` | MLP, gradientes, SGD/momentum/AdamW, mini-batches, classificação e exportação em Python padrão |
 | `evaluation/` | Experimentos e comparação com baselines tradicionais |
 | `tests/` | Testes nativos Node, paridade, navegador e Manifest V3 |

@@ -69,3 +69,20 @@ test('bateladas repetidas não compartilham buffers', () => {
   a[0][0] = -12;
   assert.deepEqual(b, predictBatch(network, [[1, 2, 3], [2, 3, 4]]));
 });
+
+test('redes profundas e saída única mantêm equivalência exata', () => {
+  const raw = {formatVersion:1,layers:[
+    {inputSize:2,outputSize:3,activation:'relu',
+      weights:[0.5,-1,1,2,-0.3,0.4],biases:[0.2,-0.1,0]},
+    {inputSize:3,outputSize:2,activation:'tanh',
+      weights:[0.25,0.75,-0.5,1,-0.2,0.5],biases:[0.1,-0.2]},
+    {inputSize:2,outputSize:1,activation:'sigmoid',
+      weights:[3,-2],biases:[-0.3]}
+  ]};
+  const deeper = loadModel(raw);
+  const vectors = Array.from({length:72},(_,i) => [Math.sin(i * 0.17), Math.cos(i * 0.12)]);
+  assert.deepEqual(predictBatch(deeper,vectors),vectors.map(x=>predict(deeper,x)));
+  const single = loadModel({formatVersion:1,layers:[
+    {inputSize:1,outputSize:1,activation:'linear',weights:[2.75],biases:[0.25]}]});
+  assert.deepEqual(predictBatch(single,[[2],[3],[4]]),[[5.75],[8.5],[11.25]].map(x=>new Float32Array(x)));
+});

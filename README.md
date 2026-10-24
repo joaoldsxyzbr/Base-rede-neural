@@ -10,7 +10,7 @@ Base neural **genérica, simples, portátil e independente**, com treinamento of
 ## Uso JavaScript
 
 ```javascript
-import { loadModel, predict, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
 
 const model = loadModel({
   formatVersion: 1,
@@ -18,6 +18,7 @@ const model = loadModel({
              weights: [2, 3], biases: [1] }]
 });
 const result = predict(model, [4, 5]); // Float32Array([24])
+const predictions = predictBatch(model, [[4, 5], [1, 2]]); // duas saídas independentes
 const json = JSON.stringify(serializeModel(model));
 ```
 
@@ -46,6 +47,7 @@ python -m unittest discover -s training_tests -v
 python -m evaluation.benchmark
 python -m evaluation.quality
 node benchmarks/inference.mjs
+node benchmarks/batch.mjs
 ```
 
 O GitHub Actions executa esses testes e `python -m evaluation.quality` (protocolo com treino/validação/teste), verifica paridade Python×JS e inferência no Chrome headless e em uma extensão MV3 (popup e service worker). Chrome é ferramenta de CI, **não** dependência do núcleo. Dados de avaliação são sintéticos.
