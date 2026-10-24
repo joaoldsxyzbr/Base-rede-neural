@@ -1,6 +1,7 @@
 function activate(value, kind) {
   switch (kind) {
     case 'linear': return value;
+    case 'relu': return Math.max(0, value);
     case 'tanh': return Math.tanh(value);
     case 'sigmoid': return value >= 0
       ? 1 / (1 + Math.exp(-value))
@@ -25,15 +26,31 @@ export function forward(layers, input) {
 
   for (const layer of layers) {
     const outputs = new Float32Array(layer.outputSize);
+    const logits = layer.activation === 'softmax' ? new Float64Array(layer.outputSize) : null;
     for (let neuron = 0; neuron < layer.outputSize; neuron += 1) {
       let sum = layer.biases[neuron];
       const offset = neuron * layer.inputSize;
       for (let i = 0; i < layer.inputSize; i += 1) {
         sum += layer.weights[offset + i] * values[i];
       }
-      const result = Math.fround(activate(sum, layer.activation));
-      if (!Number.isFinite(result)) throw new RangeError('Resultado numérico não finito');
-      outputs[neuron] = result;
+      if (!Number.isFinite(sum)) throw new RangeError('Resultado numérico não finito');
+      if (logits) {
+        logits[neuron] = sum;
+      } else {
+        const result = Math.fround(activate(sum, layer.activation));
+        if (!Number.isFinite(result)) throw new RangeError('Resultado numérico não finito');
+        outputs[neuron] = result;
+      }
+    }
+    if (logits) {
+      let maximum = -Infinity;
+      for (let i = 0; i < logits.length; i += 1) maximum = Math.max(maximum, logits[i]);
+      let total = 0;
+      for (let i = 0; i < logits.length; i += 1) {
+        logits[i] = Math.exp(logits[i] - maximum);
+        total += logits[i];
+      }
+      for (let i = 0; i < logits.length; i += 1) outputs[i] = Math.fround(logits[i] / total);
     }
     values = outputs;
   }
