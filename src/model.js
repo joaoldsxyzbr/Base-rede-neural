@@ -1,4 +1,4 @@
-import { forward } from './network.js';
+import { forward, forwardBatch } from './network.js';
 
 const FORMAT_VERSION = 1;
 const MAX_MODEL_CHARS = 25_000_000;
@@ -96,6 +96,11 @@ export function assertLoadedModel(model) {
 export function predict(model, input) {
   assertLoadedModel(model);
   return forward(internalLayers.get(model), input);
+}
+
+export function predictBatch(model, inputs) {
+  assertLoadedModel(model);
+  return forwardBatch(internalLayers.get(model), inputs);
 }
 
 export function serializeModel(model) {
