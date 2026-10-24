@@ -48,8 +48,10 @@ class ExportTests(unittest.TestCase):
         model = create_network([1, 1], ["linear"], seed=2)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "model.json"
-            previous = '{"original":true}\\n'
-            path.write_text(previous, encoding="utf-8")
+            save_model(model, path)
+            previous = path.read_text(encoding="utf-8")
+            self.assertEqual(json.loads(previous)["formatVersion"], 1)
+            model["layers"][0]["biases"][0] += 0.5
 
             with patch("os.replace", side_effect=OSError("substituicao falhou")):
                 with self.assertRaises(OSError):
