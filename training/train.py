@@ -122,6 +122,8 @@ def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0,
                             v = second_moment[layer_index][field]
                             m[j] = beta1 * m[j] + (1.0 - beta1) * gradient
                             v[j] = beta2 * v[j] + (1.0 - beta2) * gradient * gradient
+                            if not math.isfinite(m[j]) or not math.isfinite(v[j]):
+                                raise ValueError("Estado do otimizador não finito")
                             corrected_m = m[j] / (1.0 - beta1 ** step)
                             corrected_v = v[j] / (1.0 - beta2 ** step)
                             update = corrected_m / (math.sqrt(corrected_v) + epsilon)
