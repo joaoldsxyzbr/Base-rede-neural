@@ -29,6 +29,7 @@ Os parâmetros internos não são modificáveis por consumidores via `model.laye
 - **P7:** conjuntos artificiais de treino/teste separados, ruído e comparação com métodos tradicionais.
 - **P8–P9:** contrato API, documentação, licenciamento, validação de ambiente, persistência segura e revisão.
 - **P10:** mini-batches, momentum, AdamW, ReLU/He, BCE, softmax/CCE e paridade Python × JS.
+- **P12:** inferência em lote, buffers temporários, paridade com inferência individual, benchmark e testes Chrome/MV3.
 
 Resultados de generalização estão restritos às distribuições artificiais de [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
 
@@ -37,5 +38,3 @@ Resultados de generalização estão restritos às distribuições artificiais d
 O runtime não usa rede, telemetria, Node, DOM, Cloudflare, eval ou APIs pagas. A origem/armazenamento do modelo, extração de atributos e uso da previsão são do consumidor.
 
 Não comprovados: Cloudflare Workers, Safari, Firefox, mobile, lifecycle extensivo de service worker ou aplicação real. Não incluídos: LLM, transformers, WebGPU, autoaprendizado, integração com projetos específicos e publicação npm. Extensões futuras requerem testes e evidência concreta.
-
-- **P12:** rota opcional de inferência em lote, buffers temporários reutilizados por chamada, paridade com inferência individual e benchmark comparativo sem limites rígidos.

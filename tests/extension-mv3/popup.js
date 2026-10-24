@@ -1,4 +1,4 @@
-import { loadModel, predict, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
 
 const result = document.getElementById('result');
 try {
@@ -14,7 +14,8 @@ try {
   for (const entry of fixture.cases) {
     const model = loadModel(entry.model);
     const restored = loadModel(serializeModel(model));
-    for (const sample of entry.samples) {
+    const batched = predictBatch(model, entry.samples.map(sample => sample.input));
+    for (const [index, sample] of entry.samples.entries()) {
       const values = predict(model, sample.input);
       const reloaded = predict(restored, sample.input);
       if (values.length !== sample.expected.length) throw new Error('Dimension mismatch');
@@ -22,7 +23,7 @@ try {
         const tolerance = 1e-5 + 1e-5 * Math.abs(sample.expected[i]);
         if (!Number.isFinite(values[i]) ||
           Math.abs(values[i] - sample.expected[i]) > tolerance ||
-          values[i] !== reloaded[i]) throw new Error(`Parity mismatch: ${entry.name}`);
+          values[i] !== reloaded[i] || values[i] !== batched[index][i]) throw new Error(`Parity mismatch: ${entry.name}`);
       }
       checked++;
     }
