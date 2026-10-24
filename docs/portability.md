@@ -50,3 +50,9 @@ Os testes de Firefox/WebKit servem apenas arquivos explicitamente permitidos em 
 - Teste em Safari/macOS e dispositivos físicos requer runners e aparelhos reais; evitar confundir emulação de viewport e WebKit Linux com compatibilidade atestada.
 - Testes no `workerd` local não demonstram custos, limites do plano Cloudflare nem ausência de incompatibilidades com configurações de produção.
 - Nenhuma arquitetura ou operador novo foi adicionado no P13. Futuras melhorias continuam condicionadas a dados e critérios reproduzíveis.
+
+## Evidência inicial — 24/10/2026
+
+A PR #5 foi executada com **11/11 jobs aprovados** em [GitHub Actions 40122047553](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40122047553), incluindo Node 22/24, Python 3.11/3.13, paridade, Chrome, Manifest V3, avaliação científica, benchmark e os dois novos jobs de portabilidade.
+
+O job do Firefox/WebKit registrou `PASS: 22 previsões no navegador` para Firefox, WebKit Linux e WebKit com emulação móvel. O job de `workerd` registrou `PASS` para inferência, lote, serialização e validação local. As verificações cobrem **somente** as versões/ambientes executados nessa data; não constituem teste em dispositivos físicos nem validação de Workers em produção.
