@@ -39,7 +39,7 @@ class InteroperabilityTests(unittest.TestCase):
 
     def test_descritor_rejeita_v2_sem_conversao_silenciosa(self):
         model = create_network([1, 1], ["linear"], seed=2)
-        for invalid in [None, {}, {...model, "formatVersion":2}]:
+        for invalid in [None, {}, {**model, "formatVersion": 2}]:
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 describe_model(invalid)
 
