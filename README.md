@@ -50,7 +50,7 @@ node benchmarks/inference.mjs
 node benchmarks/batch.mjs
 ```
 
-O GitHub Actions executa esses testes e `python -m evaluation.quality` (protocolo com treino/validação/teste), verifica paridade Python×JS e inferência no Chrome headless e em uma extensão MV3 (popup e service worker). Chrome é ferramenta de CI, **não** dependência do núcleo. Dados de avaliação são sintéticos.
+O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, não dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos.
 
 ## Documentação
 
@@ -60,6 +60,7 @@ O GitHub Actions executa esses testes e `python -m evaluation.quality` (protocol
 - [Arquitetura atual](docs/architecture.md)
 - [Experimentos, validação P11 e baselines](docs/evaluation.md)
 - [Benchmarks](docs/performance.md)
+- [Matriz de portabilidade P13](docs/portability.md)
 - [Teste MV3](docs/extension-mv3.md)
 - [Roadmap](ROADMAP.md)
 - [Auditoria final e limitações conhecidas](docs/audit.md)

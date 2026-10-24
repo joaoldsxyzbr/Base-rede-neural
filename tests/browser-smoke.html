@@ -30,7 +30,27 @@
         tested += 1;
       }
     }
-    if (tested < 15) throw new Error('Cobertura insuficiente');
+    // P13: ativação softmax, ReLU e rejeição de formato desconhecido por engine.
+    const softmax = loadModel({ formatVersion: 1, layers: [{
+      inputSize: 1, outputSize: 3, activation: 'softmax',
+      weights: [1000, -1000, 999], biases: [0, 0, 0]
+    }] });
+    const probs = predict(softmax, [1]);
+    const batched = predictBatch(softmax, [[1], [-1]]);
+    if (probs[0] < 0.73 || probs[0] > 0.74 || probs[1] !== 0 ||
+        probs[0] !== batched[0][0] ||
+        Math.abs([...probs].reduce((a,b) => a + b, 0) - 1) > 1e-6)
+      throw new Error('Softmax divergente');
+    const relu = loadModel({formatVersion:1,layers:[{
+      inputSize:1,outputSize:1,activation:'relu',weights:[-2],biases:[1]
+    }]});
+    if (predict(relu,[2])[0] !== 0 || predict(relu,[0])[0] !== 1)
+      throw new Error('ReLU divergente');
+    let rejected = false;
+    try { loadModel({formatVersion:2,layers:[]}); } catch { rejected = true; }
+    if (!rejected) throw new Error('Aceitou modelo v2 como v1');
+    tested += 3;
+    if (tested < 18) throw new Error('Cobertura insuficiente');
     output.textContent = `PASS: ${tested} previsões no navegador`;
     output.dataset.status = 'pass';
   } catch (error) {
