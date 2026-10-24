@@ -1,5 +1,5 @@
 /** Teste isolado do runtime real workerd; não integra o motor Neural Core. */
-import { loadModel, predict, predictBatch, serializeModel } from '../src/index.js';
+import { loadModel, predict, predictBatch, serializeModel, getCapabilities, describeModel } from '../src/index.js';
 
 export default {
   async fetch() {
@@ -9,6 +9,12 @@ export default {
       { inputSize: 3, outputSize: 2, activation: 'softmax',
         weights: [1, 0, -1, -1, 0, 1], biases: [0, 0] }
     ] });
+    const info = describeModel(model);
+    const support = getCapabilities();
+    if (!support.formatVersions.includes(1) || !support.activations.includes('softmax') ||
+        info.layerCount !== 2 || info.parameterCount !== 17) {
+      return Response.json({ status: 'fail', reason: 'capability-contract' }, { status: 500 });
+    }
     const inputs = [[1, 2], [2, 1], [0, 0], [-1, 1]];
     const single = inputs.map(input => Array.from(predict(model, input)));
     const batch = predictBatch(model, inputs).map(value => Array.from(value));

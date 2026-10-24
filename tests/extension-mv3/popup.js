@@ -1,4 +1,4 @@
-import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel, getCapabilities, describeModel } from './src/index.js';
 
 const result = document.getElementById('result');
 try {
@@ -13,6 +13,11 @@ try {
   let checked = 0;
   for (const entry of fixture.cases) {
     const model = loadModel(entry.model);
+    const capabilities = getCapabilities();
+    const description = describeModel(model);
+    if (!capabilities.formatVersions.includes(entry.model.formatVersion) ||
+        description.parameterCount !== entry.model.layers.reduce((sum, layer) => sum + layer.weights.length + layer.biases.length, 0))
+      throw new Error('Unsupported model contract in MV3 popup');
     const restored = loadModel(serializeModel(model));
     const batched = predictBatch(model, entry.samples.map(sample => sample.input));
     for (const [index, sample] of entry.samples.entries()) {
