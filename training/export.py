@@ -46,8 +46,10 @@ def export_model(model):
             raise ValueError("Dimensões inválidas")
         if previous is not None and input_size != previous:
             raise ValueError("Dimensões entre camadas incompatíveis")
-        if layer.get("activation") not in {"tanh", "sigmoid", "linear"}:
+        if layer.get("activation") not in {"tanh", "sigmoid", "linear", "relu", "softmax"}:
             raise ValueError("Ativação inválida")
+        if layer["activation"] == "softmax" and (len(output) != len(layers) - 1 or output_size < 2):
+            raise ValueError("softmax exige camada de saída com pelo menos duas unidades")
         weight_count = input_size * output_size
         parameters += weight_count + output_size
         if parameters > _MAX_PARAMETERS:
