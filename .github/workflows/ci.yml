@@ -81,6 +81,14 @@ jobs:
           NEURAL_CORE_PARITY_FIXTURE: ${{ runner.temp }}/neural-core-parity.json
         run: node --test tests/parity.test.js
 
+      - name: Gerar contrato e descritores de interoperabilidade com Python
+        run: python -m training.interop_fixture > "$RUNNER_TEMP/neural-core-interop.json"
+
+      - name: Conferir suporte e metadados Python x JavaScript
+        env:
+          NEURAL_CORE_INTEROP_FIXTURE: ${{ runner.temp }}/neural-core-interop.json
+        run: node --test tests/interop.test.js
+
   browser:
     name: Navegador / Chrome headless
     runs-on: ubuntu-latest

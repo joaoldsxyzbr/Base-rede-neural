@@ -8,7 +8,7 @@ Uma base neural pequena, genérica e reutilizável. **Python treina offline; Jav
 
 | Área | Responsabilidade |
 | --- | --- |
-| `src/` | API ES Modules, validação de modelo, inferência float32 e lote com buffers temporários |
+| `src/` | API ES Modules, contrato de capacidades, descrição de modelos, validação, inferência float32 e lote com buffers temporários |
 | `training/` | MLP, gradientes, SGD/momentum/AdamW, mini-batches, classificação e exportação em Python padrão |
 | `evaluation/` | Experimentos e comparação com baselines tradicionais |
 | `tests/` | Testes nativos Node, paridade, navegador e Manifest V3 |
@@ -30,6 +30,8 @@ Os parâmetros internos não são modificáveis por consumidores via `model.laye
 - **P8–P9:** contrato API, documentação, licenciamento, validação de ambiente, persistência segura e revisão.
 - **P10:** mini-batches, momentum, AdamW, ReLU/He, BCE, softmax/CCE e paridade Python × JS.
 - **P12:** inferência em lote, buffers temporários, paridade com inferência individual, benchmark e testes Chrome/MV3.
+- **P13:** Firefox/WebKit Linux, emulação móvel e workerd local, sem alterar o motor.
+- **P14:** declaração de capacidades e descritores Python/JS; teste de contrato gerado offline e validado no CI.
 
 Resultados de generalização estão restritos às distribuições artificiais de [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
 
@@ -37,4 +39,4 @@ Resultados de generalização estão restritos às distribuições artificiais d
 
 O runtime não usa rede, telemetria, Node, DOM, Cloudflare, eval ou APIs pagas. A origem/armazenamento do modelo, extração de atributos e uso da previsão são do consumidor.
 
-Não comprovados: Cloudflare Workers, Safari, Firefox, mobile, lifecycle extensivo de service worker ou aplicação real. Não incluídos: LLM, transformers, WebGPU, autoaprendizado, integração com projetos específicos e publicação npm. Extensões futuras requerem testes e evidência concreta.
+Não comprovados: Cloudflare Workers publicados, Safari nativo, dispositivos móveis físicos, lifecycle extensivo de service worker ou aplicação real. Não incluídos: LLM, transformers, WebGPU, autoaprendizado, integração com projetos específicos e publicação npm. Extensões futuras requerem testes e evidência concreta.

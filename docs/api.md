@@ -2,20 +2,24 @@
 
 ## JavaScript público
 
-Importar `loadModel`, `predict`, `predictBatch` e `serializeModel` de `src/index.js` (ES Modules). Dentro do repositório Node.js, a importação `neural-core` resolve para o mesmo módulo; não há publicação npm.
+Importar `loadModel`, `predict`, `predictBatch`, `serializeModel`, `getCapabilities` e `describeModel` de `src/index.js` (ES Modules). Dentro do repositório Node.js, a importação `neural-core` resolve para o mesmo módulo; não há publicação npm.
 
 - **`loadModel(source)`** recebe string JSON ou objeto de dados v1; valida formato, dimensões, ativações e parâmetros e carrega os pesos como `Float32Array`.
 - **`predict(model, input)`** recebe um modelo já carregado e um `Array<number>` ou `Float32Array` da dimensão correta, devolvendo novo `Float32Array`; não modifica pesos.
 - **`predictBatch(model, inputs)`** recebe uma lista de 0 a 4.096 vetores (cada um `Array<number>` ou `Float32Array`) e retorna um `Array<Float32Array>`, com os mesmos resultados de `predict` na mesma ordem. Reutiliza dois buffers temporários **apenas durante a chamada**, mas cada saída pertence a um novo array independente. Rejeita lotes grandes/entradas inválidas antes de devolver resultados. Não altera pesos nem entradas.
+- **`getCapabilities()`** devolve descritor somente-leitura do suporte implementado: `formatVersions: [1]`, `operators: ['dense']`, ativações e limites compartilhados. Não registra operadores dinâmicos, não cria novos formatos e não representa recursos de outras plataformas.
+- **`describeModel(model)`** recebe exclusivamente modelo previamente carregado e retorna metadados imutáveis JSON-serializáveis: versão, dimensões, quantidade de camadas/parâmetros e descrição por camada. Não acessa `model.layers` nem copia matrizes grandes.
 - **`serializeModel(model)`** devolve **um novo objeto JSON-compatível**. Use `JSON.stringify` para obter uma string.
 
 ```javascript
-import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel, getCapabilities, describeModel } from './src/index.js';
 const model = loadModel({ formatVersion: 1, layers: [
   { inputSize: 2, outputSize: 1, activation: 'linear', weights: [2, 3], biases: [1] }
 ] });
 console.log(predict(model, [4, 5])); // Float32Array([24])
 const outputs = predictBatch(model, [[4, 5], [1, 2]]); // [[24], [9]] como Float32Array independentes
+const support = getCapabilities(); // formatos, operador dense e ativações
+const info = describeModel(model); // resumo sem copiar pesos
 const saved = JSON.stringify(serializeModel(model));
 ```
 
@@ -43,10 +47,11 @@ Modelos de fontes não confiáveis devem ser obtidos/preferencialmente analisado
 - `training.train.train(network, dataset, epochs=1000, learning_rate=0.1, seed=0, batch_size=1, optimizer='sgd', momentum=0.9, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01, loss='mse')`: treino reproduzível por SGD, momentum ou AdamW com mini-batches. Defaults preservam o SGD por amostra. Atualização apenas após sucesso **e validação final de exportabilidade float32**; retorna as mesmas chaves `initialLoss`, `finalLoss` e `epochs`. Falha preserva pesos e referências internas originais.
 - `training.train.train(..., validation_dataset=None, patience=None, min_delta=0.0, record_history=False)`: parâmetros opcionais P11 para seleção do checkpoint por validação, parada antecipada e registro por época; sem validação os valores retornados continuam iguais aos da API antiga (exceto com `record_history=True`). Conjuntos com entradas repetidas entre treino e validação são rejeitados.
 - `training.train.dataset_loss(network, dataset, loss='mse')`: cálculo de perda sem gradientes. Também são suportadas `bce` (sigmoid, saída escalar) e `cce` (softmax, saída multiclasse); objetivos fora dessas combinações são rejeitados.
+- `training.export.get_capabilities()` e `describe_model(network)`: versões, operadores e limites compartilhados, e resumo de arquitetura de um modelo exportável em Python; resultados JSON-friendly equivalentes ao JS. O descritor Python valida exportabilidade float32 sem modificar a origem.
 - `training.export.export_model(network)` e `save_model(network, filename)`: exportação JSON v1 float32. `save_model` grava primeiro um arquivo temporário no mesmo diretório, faz flush/fsync e o substitui com `os.replace`, removendo o temporário em caso de erro. Uma falha antes da substituição preserva o arquivo anterior; isso **não** garante durabilidade do diretório em queda de energia.
 
 Os estados de momentum/AdamW existem apenas durante a chamada de treinamento, não são serializados nem retomados implicitamente. AdamW aplica weight decay aos pesos, não aos vieses. Consulte [treinamento avançado](training.md) para fórmulas, exemplos e limitações.
 
 Não há treino automático no runtime JS nem garantia de convergência. O aplicativo consumidor cuida de normalizar vetores, carregar modelos, interpretar saídas e armazenar arquivos.
 
-Compatibilidade **testada**: Node.js 22/24, Chrome headless e Manifest V3 Chrome for Testing (popup/worker). Não há validação específica de Workers Cloudflare, Firefox, Safari ou móveis.
+Compatibilidade **testada**: Node.js 22/24, Chrome headless, Manifest V3, Firefox/WebKit Linux e Cloudflare workerd local. WebKit emulado não comprova Safari/iOS em hardware real. Confira [portability.md](portability.md) e [interoperability.md](interoperability.md).
