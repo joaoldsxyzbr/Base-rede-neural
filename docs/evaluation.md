@@ -77,3 +77,17 @@ As taxas de 100% do primeiro experimento refletem a **distribuição sintética 
 - Novos relatórios são comparações diagnósticas; o processo não ajusta parâmetros depois de observar resultados de teste.
 
 A avaliação P11 não altera `src/`, o formato JSON de modelos ou os experimentos P7. Não usa datasets privados, bibliotecas de terceiros nem recursos pagos.
+
+## Resultado inicial do P11 (24/10/2026)
+
+Execução [GitHub Actions 40092079823](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40092079823), no job de qualidade científica com Python 3.13. São médias de três sementes (7, 19 e 31), obtidas no **teste sintético ruidoso**, com hiperparâmetros fixados antes de observar o teste.
+
+| Método | Acurácia média no teste | F1 médio no teste | Brier médio no teste |
+| --- | ---: | ---: | ---: |
+| MLP + SGD | 98,70% | 0,9870 | 0,00809 |
+| MLP + momentum | 99,22% | 0,9921 | 0,00720 |
+| MLP + AdamW | 99,48% | 0,9948 | 0,00455 |
+| Classificador linear | 50,26% | 0,5081 | 0,25023 |
+| Probabilidade constante | 50,00% | 0,6667 | 0,25000 |
+
+A probabilidade constante de 0,5 prevê a classe positiva no limiar de decisão, daí seu F1 aparentemente alto apesar de acurácia de apenas 50%. O conjunto foi desenhado para conter uma fronteira não linear; a tabela **não prova** que AdamW supere os demais fora desse experimento, nem constitui benchmark de aplicações reais. Alterar hiperparâmetros em resposta a esse resultado requer reservar um novo teste final independente.

@@ -15,7 +15,7 @@ Esta sequência prepara a **primeira versão reutilizável**, não encerra o des
 | P8 | API, documentação, licença, ambiente CI e revisão | Concluído — CI de fechamento aprovado |
 | P9 | Integridade de treinamento, persistência e contratos de compatibilidade | Concluído — testes de regressão e documentação na PR #1 |
 | P10 | Mini-batches, SGD com momentum, AdamW, ReLU, softmax e classificação | Concluído na PR #2 após CI aprovado |
-| P11 | Validação independente, early stopping, métricas e experimentos controlados | Implementado na PR #3; aprovação condicionada ao CI |
+| P11 | Validação independente, early stopping, métricas e experimentos controlados | Concluído — PR #3 com CI aprovado |
 
 **Critério final:** pacote v0.1.0, API documentada, licença MIT, SHA-256 do Chrome for Testing fixado, suíte verde e auditoria de limites registrada em `docs/audit.md`. Não há publicação npm nem etiqueta Git criada automaticamente.
 
