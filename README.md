@@ -2,8 +2,8 @@
 
 Base neural **genérica, simples, portátil e independente**, com treinamento offline em Python e inferência local em JavaScript puro. Versão inicial `0.1.0`.
 
-- **JavaScript ES Modules:** carregar/validar, prever e serializar modelos de redes densas pequenas, sem dependência de DOM, Node.js, Cloudflare ou servidor.
-- **Python (stdlib):** treinamento real (SGD + retropropagação), exportação de modelos JSON, experimentos, métricas e comparação com métodos tradicionais.
+- **JavaScript ES Modules:** carregar/validar, prever e serializar modelos de redes densas pequenas (linear, tanh, sigmoid, ReLU e softmax), sem dependência de DOM, Node.js, Cloudflare ou servidor.
+- **Python (stdlib):** treinamento real (SGD, momentum, AdamW, mini-batches + retropropagação), exportação de modelos JSON, experimentos, métricas e comparação com métodos tradicionais.
 - **Privacidade e custo zero:** nenhuma telemetria, assinatura ou biblioteca externa obrigatória.
 - **Limites:** não é um LLM, não há treinamento contínuo em produção e o XOR/benchmarks sintéticos não comprovam resultados em dados reais.
 
@@ -36,7 +36,7 @@ metrics = train(model, samples, epochs=3500, learning_rate=0.35, seed=21)
 save_model(model, 'modelo.json')
 ```
 
-O treinamento é isolado: se falhar ou gerar pesos fora do intervalo float32, os pesos originais não são alterados. `save_model` substitui arquivos de forma atômica no mesmo diretório (conforme suporte do sistema de arquivos). O formato exportado é carregável em JavaScript.
+O treinamento é isolado: se falhar ou gerar pesos fora do intervalo float32, os pesos originais não são alterados. SGD e MSE continuam sendo os padrões para compatibilidade. `save_model` substitui arquivos de forma atômica no mesmo diretório (conforme suporte do sistema de arquivos). O formato exportado é carregável em JavaScript.
 
 ## Verificações reproduzíveis
 
@@ -52,6 +52,7 @@ O GitHub Actions executa esses testes, verifica paridade Python×JS e inferênci
 ## Documentação
 
 - [Contrato da API e formato JSON](docs/api.md)
+- [Treinamento avançado P10](docs/training.md)
 - [Política de compatibilidade e versionamento](docs/compatibility.md)
 - [Arquitetura atual](docs/architecture.md)
 - [Experimentos e baselines](docs/evaluation.md)
