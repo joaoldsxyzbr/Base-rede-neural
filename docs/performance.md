@@ -56,3 +56,17 @@ O caminho original `predict(model, input)` **permanece com o mesmo contrato e co
 ### Benchmark comparativo do P12
 
 Execute `node benchmarks/batch.mjs`. O arquivo compara `predict` repetido com `predictBatch` para as mesmas redes/entradas no **mesmo processo**, alternando a ordem entre repetição e sem impor limiares. Relata latência por amostra, razão observada e checagens de equivalência. Tempos são dados de diagnóstico, não promessa de desempenho; execute várias vezes em hardware controlado. O benchmark histórico `node benchmarks/inference.mjs` permanece inalterado.
+
+### Medição inicial do P12 no CI
+
+Execução [40104926390](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40104926390), Node `24.21.0`, Linux x64 compartilhado. São medianas de cinco rodadas alternadas para o mesmo modelo, com equivalência exata de resultados verificada pelo benchmark.
+
+| Topologia | Amostras/lote | `predict` (µs/entrada) | `predictBatch` (µs/entrada) | Redução de tempo observada |
+| --- | ---: | ---: | ---: | ---: |
+| 8→16→4 | 64 | 1,020 | 0,895 | 12,3% |
+| 32→64→16 | 64 | 6,791 | 6,273 | 7,6% |
+| 128→128→32 | 32 | 33,125 | 31,640 | 4,5% |
+| 16→48→32→24→8 | 64 | 8,655 | 7,627 | 11,9% |
+| 16→32→4 softmax | 64 | 2,346 | 1,946 | 17,1% |
+
+**Interpretação:** ganho de desempenho foi observado nesses cinco cenários, não em todos os ambientes. Não foi medida redução de RSS/heap por lote separadamente, portanto não há alegação de economia de memória física quantificada. A redução de alocações temporárias é uma característica do código, enquanto a memória retida de cada saída continua necessária para preservar independência dos resultados.

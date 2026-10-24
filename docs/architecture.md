@@ -37,3 +37,5 @@ Resultados de generalização estão restritos às distribuições artificiais d
 O runtime não usa rede, telemetria, Node, DOM, Cloudflare, eval ou APIs pagas. A origem/armazenamento do modelo, extração de atributos e uso da previsão são do consumidor.
 
 Não comprovados: Cloudflare Workers, Safari, Firefox, mobile, lifecycle extensivo de service worker ou aplicação real. Não incluídos: LLM, transformers, WebGPU, autoaprendizado, integração com projetos específicos e publicação npm. Extensões futuras requerem testes e evidência concreta.
+
+- **P12:** rota opcional de inferência em lote, buffers temporários reutilizados por chamada, paridade com inferência individual e benchmark comparativo sem limites rígidos.
