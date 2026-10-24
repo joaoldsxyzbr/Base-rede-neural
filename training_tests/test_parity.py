@@ -27,7 +27,7 @@ class ParityFixtureTests(unittest.TestCase):
                 reference = predict(model, sample["input"])
                 self.assertEqual(reference, sample["expected"])
                 self.assertTrue(all(math.isfinite(v) for v in reference))
-        self.assertEqual(activations, {"linear", "tanh", "sigmoid"})
+        self.assertEqual(activations, {"linear", "tanh", "sigmoid", "relu", "softmax"})
 
     def test_rede_treinada_realmente_aprende_xor(self):
         trained = next(c for c in build_fixture()["cases"] if c["name"] == "xor-trained")
