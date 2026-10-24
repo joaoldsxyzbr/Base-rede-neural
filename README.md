@@ -10,7 +10,7 @@ Base neural **genérica, simples, portátil e independente**, com treinamento of
 ## Uso JavaScript
 
 ```javascript
-import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel, getCapabilities, describeModel } from './src/index.js';
 
 const model = loadModel({
   formatVersion: 1,
@@ -19,6 +19,8 @@ const model = loadModel({
 });
 const result = predict(model, [4, 5]); // Float32Array([24])
 const predictions = predictBatch(model, [[4, 5], [1, 2]]); // duas saídas independentes
+const features = getCapabilities(); // formatos e ativações realmente disponíveis
+const info = describeModel(model); // dimensões e custo, sem copiar pesos
 const json = JSON.stringify(serializeModel(model));
 ```
 
@@ -48,6 +50,7 @@ python -m evaluation.benchmark
 python -m evaluation.quality
 node benchmarks/inference.mjs
 node benchmarks/batch.mjs
+python -m training.interop_fixture
 ```
 
 O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, não dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos.
@@ -57,6 +60,7 @@ O GitHub Actions executa os testes e a avaliação científica, verifica paridad
 - [Contrato da API e formato JSON](docs/api.md)
 - [Treinamento avançado P10](docs/training.md)
 - [Política de compatibilidade e versionamento](docs/compatibility.md)
+- [Contrato interoperável e evolução P14](docs/interoperability.md)
 - [Arquitetura atual](docs/architecture.md)
 - [Experimentos, validação P11 e baselines](docs/evaluation.md)
 - [Benchmarks](docs/performance.md)

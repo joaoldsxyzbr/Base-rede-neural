@@ -12,6 +12,13 @@ O Neural Core mantém versões distintas para o **pacote** (`package.json`, atua
 - O treinamento Python usa float64 internamente, mas antes de confirmar novos pesos valida se o modelo é exportável em float32. Treinamentos inválidos preservam os pesos anteriores.
 - `save_model` usa um temporário no mesmo diretório e `os.replace`, evitando truncamento direto de um modelo preexistente. A operação pode falhar por permissões, bloqueios ou problemas de I/O; não oferece transações entre arquivos nem garantia de sobrevivência a toda queda de energia.
 
+## Declaração de capacidades e interoperabilidade — P14
+
+- As capacidades atuais podem ser consultadas sem adivinhar nomes de ativações usando `getCapabilities()` no runtime JS e `get_capabilities()` no treinamento Python. Ambas retornam o mesmo contrato declarativo v1; isso **não** significa aceitação de modelos arbitrários.
+- A descrição de um modelo disponível em `describeModel()`/`describe_model()` informa as dimensões e a contagem de parâmetros, sem entregar os pesos na API JS.
+- A suíte CI gera o contrato e descritores em Python e os confere com o runtime JS real em `tests/interop.test.js`.
+- Nenhuma conversão implícita foi adicionada: v2 e operadores não implementados continuam rejeitados. Contrato completo em [interoperability.md](interoperability.md).
+
 ## Introdução de um futuro formato v2
 
 1. Propor um novo contrato explícito para qualquer arquitetura, operador ou alteração de significado incompatível com v1. Não reutilizar `formatVersion: 1` para semânticas novas.
@@ -22,6 +29,6 @@ O Neural Core mantém versões distintas para o **pacote** (`package.json`, atua
 
 ## Matriz de compatibilidade verificada
 
-O CI cobre Node.js 22/24, Python 3.11/3.13, Chrome headless e extensão Chrome Manifest V3 (popup/service worker). Isso não comprova Firefox, Safari, Cloudflare Workers, iOS, Android ou runtimes sem navegador. Ampliar a matriz exige testes reais nesses ambientes.
+O CI cobre Node.js 22/24, Python 3.11/3.13, Chrome headless, extensão Chrome Manifest V3 (popup/service worker), Firefox/WebKit Linux e Cloudflare workerd **local**. Safari nativo, iOS/Android físicos e Workers publicados permanecem não comprovados; consultar [portability.md](portability.md).
 
 A API e os limites atuais estão em [api.md](api.md); a visão de arquitetura, em [architecture.md](architecture.md).

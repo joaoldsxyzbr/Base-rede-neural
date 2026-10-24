@@ -1,11 +1,19 @@
-import { forward, forwardBatch } from './network.js';
+import { forward, forwardBatch, SUPPORTED_ACTIVATIONS } from './network.js';
 
 const FORMAT_VERSION = 1;
 const MAX_MODEL_CHARS = 25_000_000;
 const MAX_LAYERS = 16;
 const MAX_NEURONS = 4096;
 const MAX_PARAMETERS = 250_000;
-const ACTIVATIONS = new Set(['linear', 'sigmoid', 'tanh', 'relu', 'softmax']);
+const ACTIVATIONS = new Set(SUPPORTED_ACTIVATIONS);
+const CAPABILITIES = Object.freeze({
+  formatVersions: Object.freeze([FORMAT_VERSION]),
+  operators: Object.freeze(['dense']),
+  activations: SUPPORTED_ACTIVATIONS,
+  limits: Object.freeze({
+    maxLayers: MAX_LAYERS, maxWidth: MAX_NEURONS, maxParameters: MAX_PARAMETERS
+  })
+});
 const internalLayers = new WeakMap();
 
 function positiveSize(value, label) {
@@ -101,6 +109,42 @@ export function predict(model, input) {
 export function predictBatch(model, inputs) {
   assertLoadedModel(model);
   return forwardBatch(internalLayers.get(model), inputs);
+}
+
+/**
+ * Contrato de compatibilidade: apenas as capacidades realmente executáveis.
+ * O resultado é somente leitura e não representa operadores futuros.
+ */
+export function getCapabilities() {
+  return CAPABILITIES;
+}
+
+/**
+ * Retorna metadados de um modelo carregado, sem copiar as matrizes de pesos.
+ * Útil para um consumidor decidir dimensões e custo antes de executar.
+ */
+export function describeModel(model) {
+  assertLoadedModel(model);
+  const layers = internalLayers.get(model);
+  let parameterCount = 0;
+  const summary = layers.map(layer => {
+    const count = layer.inputSize * layer.outputSize + layer.outputSize;
+    parameterCount += count;
+    return Object.freeze({
+      inputSize: layer.inputSize,
+      outputSize: layer.outputSize,
+      activation: layer.activation,
+      parameterCount: count
+    });
+  });
+  return Object.freeze({
+    formatVersion: FORMAT_VERSION,
+    inputSize: layers[0].inputSize,
+    outputSize: layers[layers.length - 1].outputSize,
+    layerCount: layers.length,
+    parameterCount,
+    layers: Object.freeze(summary)
+  });
 }
 
 export function serializeModel(model) {

@@ -4,7 +4,7 @@
 <title>Neural Core — browser smoke</title>
 <output id="result">PENDING</output>
 <script type="module">
-  import { loadModel, predict, predictBatch, serializeModel } from '/src/index.js';
+  import { loadModel, predict, predictBatch, serializeModel, getCapabilities, describeModel } from '/src/index.js';
   const output = document.querySelector('#result');
   try {
     const response = await fetch('/tests/fixtures/parity.json');
@@ -14,6 +14,13 @@
     let tested = 0;
     for (const entry of fixture.cases) {
       const model = loadModel(entry.model);
+      const capabilities = getCapabilities();
+      const description = describeModel(model);
+      if (!capabilities.formatVersions.includes(entry.model.formatVersion) ||
+          !capabilities.activations.includes(entry.model.layers[0].activation) ||
+          description.layerCount !== entry.model.layers.length ||
+          description.parameterCount !== entry.model.layers.reduce((sum, layer) => sum + layer.weights.length + layer.biases.length, 0))
+        throw new Error(`${entry.name}: contrato de capacidades/arquitetura inválido`);
       const restored = loadModel(serializeModel(model));
       const batched = predictBatch(model, entry.samples.map(sample => sample.input));
       for (const [index, sample] of entry.samples.entries()) {

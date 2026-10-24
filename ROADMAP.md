@@ -18,6 +18,7 @@ Esta sequência prepara a **primeira versão reutilizável**, não encerra o des
 | P11 | Validação independente, early stopping, métricas e experimentos controlados | Concluído — PR #3 com CI aprovado |
 | P12 | Inferência em lote e buffers temporários, paridade e benchmarks comparativos | Concluído — PR #4, CI e medições documentadas |
 | P13 | Testes Firefox, WebKit (incluindo emulação móvel) e workerd local | Concluído — PR #5 com CI de 11 jobs aprovado |
+| P14 | Contrato interoperável, capacidades e evolução segura | Concluído na PR #6 mediante CI e paridade aprovados |
 
 **Critério final:** pacote v0.1.0, API documentada, licença MIT, SHA-256 do Chrome for Testing fixado, suíte verde e auditoria de limites registrada em `docs/audit.md`. Não há publicação npm nem etiqueta Git criada automaticamente.
 
