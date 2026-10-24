@@ -2,18 +2,20 @@
 
 ## JavaScript público
 
-Importar `loadModel`, `predict` e `serializeModel` de `src/index.js` (ES Modules). Dentro do repositório Node.js, a importação `neural-core` resolve para o mesmo módulo; não há publicação npm.
+Importar `loadModel`, `predict`, `predictBatch` e `serializeModel` de `src/index.js` (ES Modules). Dentro do repositório Node.js, a importação `neural-core` resolve para o mesmo módulo; não há publicação npm.
 
 - **`loadModel(source)`** recebe string JSON ou objeto de dados v1; valida formato, dimensões, ativações e parâmetros e carrega os pesos como `Float32Array`.
 - **`predict(model, input)`** recebe um modelo já carregado e um `Array<number>` ou `Float32Array` da dimensão correta, devolvendo novo `Float32Array`; não modifica pesos.
+- **`predictBatch(model, inputs)`** recebe uma lista de 0 a 4.096 vetores (cada um `Array<number>` ou `Float32Array`) e retorna um `Array<Float32Array>`, com os mesmos resultados de `predict` na mesma ordem. Reutiliza dois buffers temporários **apenas durante a chamada**, mas cada saída pertence a um novo array independente. Rejeita lotes grandes/entradas inválidas antes de devolver resultados. Não altera pesos nem entradas.
 - **`serializeModel(model)`** devolve **um novo objeto JSON-compatível**. Use `JSON.stringify` para obter uma string.
 
 ```javascript
-import { loadModel, predict, serializeModel } from './src/index.js';
+import { loadModel, predict, predictBatch, serializeModel } from './src/index.js';
 const model = loadModel({ formatVersion: 1, layers: [
   { inputSize: 2, outputSize: 1, activation: 'linear', weights: [2, 3], biases: [1] }
 ] });
 console.log(predict(model, [4, 5])); // Float32Array([24])
+const outputs = predictBatch(model, [[4, 5], [1, 2]]); // [[24], [9]] como Float32Array independentes
 const saved = JSON.stringify(serializeModel(model));
 ```
 

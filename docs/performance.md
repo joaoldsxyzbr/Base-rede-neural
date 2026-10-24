@@ -41,3 +41,32 @@ Execução de **23/10/2026**, [workflow P4](https://github.com/joaoldsxyzbr/Base
 As medidas foram extraídas dos logs do job `Benchmark / Node 24`. **Não são garantias de desempenho** e não incluem o custo total de memória da aplicação. O job `Navegador / Chrome headless` passou com **19 previsões de referência**. A execução direta no container local não completou por limitações do processo Chromium no ambiente local; o teste foi confirmado no runner real do GitHub.
 
 As próximas melhorias de otimização devem ser avaliadas com o mesmo benchmark, com diversas repetições em hardware controlado. Não associar o tempo de inferência a treinamento, precisão de modelos reais, extensões ou Workers sem medições adicionais.
+
+## P12 — Inferência em lote com buffers temporários reutilizados
+
+O caminho original `predict(model, input)` **permanece com o mesmo contrato e comportamento**. A nova função opt-in `predictBatch(model, inputs)` compartilha dois buffers `Float32Array` intermediários e um buffer `Float64Array` de logits (somente se a saída for softmax) entre as amostras **durante uma única chamada**. Cada vetor retornado é uma cópia independente; não há memória de trabalho global associada aos modelos carregados.
+
+- Limite de **4.096 amostras por chamada**. É possível dividir entradas maiores em vários lotes.
+- Evita alocar novos vetores intermediários para cada amostra, preservando os cálculos de pesos em precisão de JS e o arredondamento float32 após cada camada.
+- Respostas repetidas são independentes; não modifica os vetores de entrada, nem os parâmetros, nem retém buffers entre lotes.
+- O ganho depende do tamanho da rede, do tamanho do lote, do GC e do mecanismo JS. Em pequenos lotes, o overhead pode ser maior que simplesmente chamar `predict`.
+- **Nenhum ganho de velocidade é presumido:** medir primeiro e manter o modo tradicional disponível para uso unitário.
+- Adiar formatos binários/quantização até testes de tamanho, acurácia, latência e compatibilidade justificarem seu custo. O JSON v1 permanece como formato público único.
+
+### Benchmark comparativo do P12
+
+Execute `node benchmarks/batch.mjs`. O arquivo compara `predict` repetido com `predictBatch` para as mesmas redes/entradas no **mesmo processo**, alternando a ordem entre repetição e sem impor limiares. Relata latência por amostra, razão observada e checagens de equivalência. Tempos são dados de diagnóstico, não promessa de desempenho; execute várias vezes em hardware controlado. O benchmark histórico `node benchmarks/inference.mjs` permanece inalterado.
+
+### Medição inicial do P12 no CI
+
+Execução [40104926390](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40104926390), Node `24.21.0`, Linux x64 compartilhado. São medianas de cinco rodadas alternadas para o mesmo modelo, com equivalência exata de resultados verificada pelo benchmark.
+
+| Topologia | Amostras/lote | `predict` (µs/entrada) | `predictBatch` (µs/entrada) | Redução de tempo observada |
+| --- | ---: | ---: | ---: | ---: |
+| 8→16→4 | 64 | 1,020 | 0,895 | 12,3% |
+| 32→64→16 | 64 | 6,791 | 6,273 | 7,6% |
+| 128→128→32 | 32 | 33,125 | 31,640 | 4,5% |
+| 16→48→32→24→8 | 64 | 8,655 | 7,627 | 11,9% |
+| 16→32→4 softmax | 64 | 2,346 | 1,946 | 17,1% |
+
+**Interpretação:** ganho de desempenho foi observado nesses cinco cenários, não em todos os ambientes. Não foi medida redução de RSS/heap por lote separadamente, portanto não há alegação de economia de memória física quantificada. A redução de alocações temporárias é uma característica do código, enquanto a memória retida de cada saída continua necessária para preservar independência dos resultados.

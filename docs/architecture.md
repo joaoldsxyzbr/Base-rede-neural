@@ -8,7 +8,7 @@ Uma base neural pequena, genérica e reutilizável. **Python treina offline; Jav
 
 | Área | Responsabilidade |
 | --- | --- |
-| `src/` | API ES Modules, validação de modelo e inferência float32 |
+| `src/` | API ES Modules, validação de modelo, inferência float32 e lote com buffers temporários |
 | `training/` | MLP, gradientes, SGD/momentum/AdamW, mini-batches, classificação e exportação em Python padrão |
 | `evaluation/` | Experimentos e comparação com baselines tradicionais |
 | `tests/` | Testes nativos Node, paridade, navegador e Manifest V3 |
@@ -29,6 +29,7 @@ Os parâmetros internos não são modificáveis por consumidores via `model.laye
 - **P7:** conjuntos artificiais de treino/teste separados, ruído e comparação com métodos tradicionais.
 - **P8–P9:** contrato API, documentação, licenciamento, validação de ambiente, persistência segura e revisão.
 - **P10:** mini-batches, momentum, AdamW, ReLU/He, BCE, softmax/CCE e paridade Python × JS.
+- **P12:** inferência em lote, buffers temporários, paridade com inferência individual, benchmark e testes Chrome/MV3.
 
 Resultados de generalização estão restritos às distribuições artificiais de [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
 

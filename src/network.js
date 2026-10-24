@@ -10,11 +10,11 @@ function activate(value, kind) {
   }
 }
 
-export function forward(layers, input) {
+export function forward(layers, input, workspace = null) {
   if (!(Array.isArray(input) || input instanceof Float32Array) || input.length !== layers[0].inputSize) {
     throw new TypeError('Entrada inválida: tamanho incompatível');
   }
-  let values = new Float32Array(input.length);
+  let values = workspace ? workspace.first : new Float32Array(input.length);
   for (let i = 0; i < input.length; i += 1) {
     if (typeof input[i] !== 'number' || !Number.isFinite(input[i])) {
       throw new TypeError(`Entrada ${i}: valor não finito`);
@@ -25,8 +25,12 @@ export function forward(layers, input) {
   }
 
   for (const layer of layers) {
-    const outputs = new Float32Array(layer.outputSize);
-    const logits = layer.activation === 'softmax' ? new Float64Array(layer.outputSize) : null;
+    const outputs = workspace
+      ? (values === workspace.first ? workspace.second : workspace.first)
+      : new Float32Array(layer.outputSize);
+    const logits = layer.activation === 'softmax'
+      ? (workspace ? workspace.logits : new Float64Array(layer.outputSize))
+      : null;
     for (let neuron = 0; neuron < layer.outputSize; neuron += 1) {
       let sum = layer.biases[neuron];
       const offset = neuron * layer.inputSize;
@@ -54,5 +58,30 @@ export function forward(layers, input) {
     }
     values = outputs;
   }
-  return values;
+  return workspace ? values.slice(0, layers[layers.length - 1].outputSize) : values;
+}
+
+/**
+ * Execute many predictions, reusing two scratch buffers within this call.
+ * Each returned Float32Array is independent; no state survives the batch.
+ */
+export function forwardBatch(layers, inputs) {
+  if (!Array.isArray(inputs)) throw new TypeError('Lote de entradas inválido');
+  if (inputs.length > 4096) throw new RangeError('Lote acima do limite de tamanho');
+  if (inputs.length === 0) return [];
+
+  let maxWidth = layers[0].inputSize;
+  for (const layer of layers) maxWidth = Math.max(maxWidth, layer.outputSize);
+  const workspace = {
+    first: new Float32Array(maxWidth),
+    second: new Float32Array(maxWidth),
+    logits: layers[layers.length - 1].activation === 'softmax'
+      ? new Float64Array(layers[layers.length - 1].outputSize)
+      : null
+  };
+  const results = [];
+  for (const input of inputs) {
+    results.push(forward(layers, input, workspace));
+  }
+  return results;
 }

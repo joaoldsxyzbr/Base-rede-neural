@@ -115,6 +115,9 @@ jobs:
       - name: Medir carregamento, inferencia e memoria
         run: node benchmarks/inference.mjs
 
+      - name: Comparar inferencia em lote e individual
+        run: node benchmarks/batch.mjs
+
   extension-mv3:
     name: Extensão Manifest V3 / Chrome for Testing
     runs-on: ubuntu-latest
