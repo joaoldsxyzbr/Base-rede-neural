@@ -2,8 +2,10 @@
 
 import json
 import math
+import os
 from pathlib import Path
 import struct
+import tempfile
 
 
 _MAX_LAYERS = 16
@@ -64,6 +66,21 @@ def export_model(model):
 
 
 def save_model(model, filename):
-    """Salva dados, não executa código; o chamador escolhe o destino."""
+    """Substitui arquivo de modelo com seguranca usando rename no mesmo diretorio."""
     encoded = json.dumps(export_model(model), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
-    Path(filename).write_text(encoded + "\n", encoding="utf-8")
+    destination = Path(filename)
+    temporary_path = None
+    try:
+        # O temporario permanece no mesmo filesystem para os.replace ser atomico.
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=destination.parent,
+            prefix=f".{destination.name}.", suffix=".tmp", delete=False
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(encoded + "\n")
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        os.replace(temporary_path, destination)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)

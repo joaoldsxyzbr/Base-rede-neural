@@ -76,6 +76,9 @@ def train(network, dataset, *, epochs=1000, learning_rate=0.1, seed=0):
                             raise ValueError("Treinamento divergiu; ajuste a taxa de aprendizado")
                         layer[field][j] = next_value
     final_loss = _mean_loss(candidate, samples)
+    # Treinamento em float64 pode produzir valores finitos que nao cabem em float32.
+    # Nunca confirme pesos que nao podem ser carregados pelo runtime JavaScript.
+    export_model(candidate)
     for original, trained in zip(network["layers"], candidate["layers"]):
         original["weights"][:] = trained["weights"]
         original["biases"][:] = trained["biases"]

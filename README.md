@@ -36,7 +36,7 @@ metrics = train(model, samples, epochs=3500, learning_rate=0.35, seed=21)
 save_model(model, 'modelo.json')
 ```
 
-O treinamento é isolado: se falhar, os pesos originais não são alterados. O formato exportado é carregável em JavaScript.
+O treinamento é isolado: se falhar ou gerar pesos fora do intervalo float32, os pesos originais não são alterados. `save_model` substitui arquivos de forma atômica no mesmo diretório (conforme suporte do sistema de arquivos). O formato exportado é carregável em JavaScript.
 
 ## Verificações reproduzíveis
 
@@ -52,6 +52,7 @@ O GitHub Actions executa esses testes, verifica paridade Python×JS e inferênci
 ## Documentação
 
 - [Contrato da API e formato JSON](docs/api.md)
+- [Política de compatibilidade e versionamento](docs/compatibility.md)
 - [Arquitetura atual](docs/architecture.md)
 - [Experimentos e baselines](docs/evaluation.md)
 - [Benchmarks](docs/performance.md)
