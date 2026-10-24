@@ -93,3 +93,12 @@ test('rejeita modelos malformados, grandes e tipos incompatíveis', () => {
   assert.throws(() => loadModel({...valid(), layers: [{...valid().layers[0], weights: new Float32Array([2, -3])}]}));
   assert.throws(() => loadModel({...valid(), layers: [{...valid().layers[0], biases: [1e100]}]}));
 });
+
+test('formato v1 ignora campos extras sem alterar modelo e rejeita v2', () => {
+  const source = valid();
+  source.applicationMetadata = { arbitrary: true };
+  source.layers[0].extra = 'ignored';
+  const restored = serializeModel(loadModel(JSON.stringify(source)));
+  assert.deepEqual(restored, valid());
+  assert.throws(() => loadModel({ ...source, formatVersion: 2 }), /versão|inválido/i);
+});

@@ -28,7 +28,7 @@ const saved = JSON.stringify(serializeModel(model));
 
 Camadas densas em ordem, pesos achatados por neurônio de saída `weights[output][input]` e vieses por saída. Ativações permitidas: `linear`, `sigmoid`, `tanh`. Camadas conectadas têm dimensões compatíveis. Limites: **16 camadas**, **4.096 unidades por dimensão**, **250.000 parâmetros totais** (pesos + vieses), **25 milhões de caracteres para strings JSON**. O limite de caracteres não se aplica a objetos já materializados. O consumo total de memória depende do ambiente.
 
-Dados não numéricos, `NaN`, infinito, valores que excedem float32, dimensões e versões inválidas são rejeitados; valores muito pequenos podem arredondar para zero. `formatVersion` precisa ser exatamente `1`. Campos desconhecidos não pertencem ao contrato e podem ser ignorados.
+Dados não numéricos, `NaN`, infinito, valores que excedem float32, dimensões e versões inválidas são rejeitados; valores muito pequenos podem arredondar para zero. `formatVersion` precisa ser exatamente `1`. Campos desconhecidos não pertencem ao contrato e podem ser ignorados. O serializador em JS elimina campos desconhecidos; modelos v2 não são interpretados como v1. Veja [política de compatibilidade](compatibility.md).
 
 `model.inputSize` e `model.outputSize` são estáveis. `model.layers` retorna **cópias** independentes dos pesos/vieses: lê-las pode alocar memória. Modificar essas cópias ou resultados de `predict` não altera o modelo. Erros podem ser `TypeError`, `RangeError` e `SyntaxError`; não dependa da redação das mensagens.
 
@@ -38,9 +38,9 @@ Modelos de fontes não confiáveis devem ser obtidos/preferencialmente analisado
 
 - `training.network.create_network(sizes, activations, seed=0)`: inicializa camadas densas.
 - `training.network.predict(network, inputs)`: inferência Python de referência.
-- `training.train.train(network, dataset, epochs=1000, learning_rate=0.1, seed=0)`: SGD, atualização apenas após sucesso; retorna perda inicial/final e épocas.
+- `training.train.train(network, dataset, epochs=1000, learning_rate=0.1, seed=0)`: SGD, atualização apenas após sucesso **e validação final de exportabilidade float32**; retorna perda inicial/final e épocas. Falha preserva pesos e referências internas originais.
 - `training.train.dataset_loss(network, dataset)`: cálculo de perda sem gradientes.
-- `training.export.export_model(network)` e `save_model(network, filename)`: exportação JSON v1 float32.
+- `training.export.export_model(network)` e `save_model(network, filename)`: exportação JSON v1 float32. `save_model` grava primeiro um arquivo temporário no mesmo diretório, faz flush/fsync e o substitui com `os.replace`, removendo o temporário em caso de erro. Uma falha antes da substituição preserva o arquivo anterior; isso **não** garante durabilidade do diretório em queda de energia.
 
 Não há treino automático no runtime JS nem garantia de convergência. O aplicativo consumidor cuida de normalizar vetores, carregar modelos, interpretar saídas e armazenar arquivos.
 
