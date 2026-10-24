@@ -46,6 +46,30 @@ save_model(model, 'modelo.json')
 
 O JavaScript continua usando `loadModel` e `predict` sem opções adicionais. `loss`, otimizador, métricas e rótulos pertencem ao treinamento/consumidor, não ao arquivo v1.
 
+## Validação independente e early stopping — P11
+
+`train(..., validation_dataset=None, patience=None, min_delta=0.0, record_history=False)` acrescenta recursos **opt-in**, mantendo retorno e pesos do comportamento antigo quando usados os defaults.
+
+- `validation_dataset` usa o mesmo formato de `dataset`, mas seus exemplos nunca participam dos gradientes.
+- A API rejeita atributos de entrada idênticos entre treinamento e validação; a detecção não identifica grupos relacionados ou duplicatas semânticas. O projeto consumidor deve impedir vazamento por usuário, tempo ou origem.
+- A perda de validação é avaliada a cada época, incluindo a época **0**, antes de atualizar pesos.
+- O melhor checkpoint é guardado quando há redução estrita da perda superior a `min_delta`; ao terminar ou interromper, os melhores pesos são restaurados.
+- `patience` é um inteiro positivo que interrompe após essa quantidade de épocas consecutivas sem melhoria; exige `validation_dataset`.
+- Com validação, o retorno agrega `initialValidationLoss`, `bestValidationLoss`, `bestEpoch`, `epochsRun` e `stoppedEarly`. `epochs` continua indicando o máximo solicitado.
+- `record_history=True` acrescenta o histórico por época de `trainLoss` e, se disponível, `validationLoss`; pode usar memória proporcional ao número de épocas. Não há histórico por padrão.
+
+Exemplo de uso:
+
+```python
+metrics = train(model, training_samples, loss="bce", epochs=250,
+                validation_dataset=validation_samples, patience=20,
+                min_delta=1e-4, record_history=True, optimizer="adamw")
+# Só depois que os pesos finais forem selecionados:
+# avaliar uma única vez em um conjunto de teste intocado.
+```
+
+Os conjuntos de teste não são argumento de `train`. Early stopping não garante superioridade; o melhor modelo depende da distribuição dos dados de validação.
+
 ## Verificação e limites
 
 O CI valida derivadas numericamente, atualizações de mini-batches/otimizadores, casos extremos, aprendizagem sintética e paridade de inferência Python × JS para as novas ativações. Os datasets são artificiais: nenhum método é garantidamente melhor em tarefas reais. Para avaliação com conjuntos independentes e baselines, veja [evaluation.md](evaluation.md). 

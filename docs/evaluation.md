@@ -1,4 +1,4 @@
-# Avaliação reproduzível — P7
+# Avaliação reproduzível — P7 e P11
 
 ## Objetivo e limites
 
@@ -9,6 +9,7 @@ Executar na raiz do repositório:
 ```bash
 python -m unittest discover -s training_tests -v
 python -m evaluation.benchmark
+python -m evaluation.quality
 ```
 
 A execução imprime JSON com resultados por semente, resumos estatísticos e hiperparâmetros fixos. O CI usa Python 3.11/3.13 nos testes e publica a avaliação em um job próprio com Python 3.13.
@@ -60,3 +61,19 @@ As taxas de 100% do primeiro experimento refletem a **distribuição sintética 
 - Mudanças futuras no algoritmo devem ser avaliadas com o mesmo protocolo e também com novos conjuntos de avaliação independentes para evitar ajustar o projeto ao benchmark.
 - Os limites numéricos de teste são um controle de regressão apenas para os cenários determinísticos; não são metas gerais para usuários ou projetos consumidores.
 - P7 não modifica `src/`, não cria treinamento automático nos aplicativos e não depende de APIs ou datasets externos.
+
+## P11 — Protocolo de validação e teste
+
+`python -m evaluation.quality` emite um segundo relatório JSON (`protocolVersion: 2`) **separado** dos experimentos P7, preservando o protocolo anterior para comparações futuras.
+
+- Problema: classificação sintética dos quatro quadrantes, equilibrada por classe.
+- Divisão padrão: 96 observações de treinamento (ruído gaussiano 0,05), 64 de validação (0,05) e 128 de teste (0,15). Sementes de geração independentes para cada divisão; o relatório registra todas as quantidades e parâmetros.
+- Redes comparadas sob as **mesmas amostras** por semente: MLP [2,8,1] com SGD, momentum ou AdamW; classificador linear sigmoide [2,1]; e probabilidade constante estimada no conjunto de treinamento.
+- Hiperparâmetros fixados antes da avaliação: 160 épocas no máximo, 20 de paciência, mini-batch 8, entropia cruzada binária; taxas por otimizador documentadas no JSON.
+- Seleção do checkpoint: exclusivamente perda de validação (a época 0 é candidata). Nenhum modelo vê exemplos de teste durante atualizações, seleção de época ou escolha de hiperparâmetros.
+- Métricas: acurácia, precisão, recall, F1, Brier e matriz de confusão por divisão e por semente; resumo com média e desvio-padrão populacional. Se não houver positivos previstos, precisão/recall/F1 usam 0 em vez de divisão por zero.
+- Sementes padrão 7, 19 e 31. **Três repetições não representam intervalo de confiança** e não justificam afirmar que um otimizador é universalmente melhor.
+- A separação de entradas idênticas e os diferentes geradores reduzem vazamento nos dados sintéticos, mas não substituem uma divisão por grupos/tempo em bases reais.
+- Novos relatórios são comparações diagnósticas; o processo não ajusta parâmetros depois de observar resultados de teste.
+
+A avaliação P11 não altera `src/`, o formato JSON de modelos ou os experimentos P7. Não usa datasets privados, bibliotecas de terceiros nem recursos pagos.
