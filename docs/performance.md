@@ -70,3 +70,7 @@ Execução [40104926390](https://github.com/joaoldsxyzbr/Base-rede-neural/action
 | 16→32→4 softmax | 64 | 2,346 | 1,946 | 17,1% |
 
 **Interpretação:** ganho de desempenho foi observado nesses cinco cenários, não em todos os ambientes. Não foi medida redução de RSS/heap por lote separadamente, portanto não há alegação de economia de memória física quantificada. A redução de alocações temporárias é uma característica do código, enquanto a memória retida de cada saída continua necessária para preservar independência dos resultados.
+
+## P15 — Stress e memória observacional
+
+O job de benchmark executa `node --expose-gc benchmarks/stress.mjs`, com 12 lotes de 4.096 amostras (49.152 inferências) numa rede com ReLU/softmax, paridade com `predict`, checagens de isolamento e pesos imutados. Registra duração, heap e RSS antes e depois de uma tentativa de GC, **sem limite rígido de memória ou latência**: resultados em runner compartilhado não provam ausência de vazamento em sessões prolongadas.
