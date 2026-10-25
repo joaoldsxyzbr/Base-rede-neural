@@ -126,6 +126,9 @@ jobs:
       - name: Comparar inferencia em lote e individual
         run: node benchmarks/batch.mjs
 
+      - name: Stress e memória observada sem limite de heap instável
+        run: node --expose-gc benchmarks/stress.mjs
+
   extension-mv3:
     name: Extensão Manifest V3 / Chrome for Testing
     runs-on: ubuntu-latest
