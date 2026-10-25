@@ -23,19 +23,22 @@ O CI P13 adiciona dois jobs: `Portabilidade / Firefox e WebKit` e `Portabilidade
 
 ## Reproduzir localmente
 
-O runtime e o treinamento mantêm zero dependências externas. Só os **testes de portabilidade** instalam ferramentas oficiais de seus fornecedores, temporariamente no ambiente de CI ou de desenvolvimento.
+O runtime e o treinamento mantêm zero dependências externas. No P15, os pacotes oficiais de teste têm lockfile em `ci-tools/package-lock.json` e são instalados com `npm ci`; `node_modules` é apenas um link simbólico temporário no ambiente de teste. Só os **testes de portabilidade** instalam ferramentas oficiais de seus fornecedores, temporariamente no ambiente de CI ou de desenvolvimento.
 
 ```bash
 # Em um ambiente Linux com Node.js 24
-npm install --no-save --no-package-lock --ignore-scripts playwright@1.64.1
-npx playwright install --with-deps firefox webkit
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --prefix ci-tools --no-audit --no-fund
+ln -s ci-tools/node_modules node_modules
+ci-tools/node_modules/.bin/playwright install --with-deps firefox webkit
 node scripts/cross-browser-smoke.mjs
 ```
 
 Para testar `workerd` local, em ambiente de teste separado:
 
 ```bash
-npm install --no-save --no-package-lock wrangler@4.152.0
+# Se o setup acima já foi executado, reutilize-o sem reinstalar:
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --prefix ci-tools --no-audit --no-fund
+ln -s ci-tools/node_modules node_modules
 WRANGLER_SEND_METRICS=false CLOUDFLARE_SEND_METRICS=false node scripts/worker-smoke.mjs
 ```
 
