@@ -4,7 +4,7 @@ import {loadModel,predict,predictBatch,serializeModel,describeModel,getCapabilit
 
 const raw = () => ({ formatVersion:1, layers:[{
   inputSize:2,outputSize:2,activation:'softmax',
-  weights:[1,-1,-1,1],biases:[0.1,-0.1]
+  weights:[1,-1,-1,1],biases:[0.125,-0.125]
 }]});
 
 function nextRandom(seed) {

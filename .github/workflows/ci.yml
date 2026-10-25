@@ -184,13 +184,16 @@ jobs:
           node-version: '24'
           package-manager-cache: false
 
-      - name: Instalar Playwright oficial da Microsoft apenas no CI
-        run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.64.1
+      - name: Instalar ferramentas oficiais com lockfile isolado
+        run: |
+          npm ci --prefix ci-tools --no-audit --no-fund
+          ln -s ci-tools/node_modules node_modules
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          WRANGLER_SEND_METRICS: 'false'
 
       - name: Instalar Firefox e WebKit para teste
-        run: npx playwright install --with-deps firefox webkit
+        run: ci-tools/node_modules/.bin/playwright install --with-deps firefox webkit
 
       - name: Testar inferencia no Firefox, WebKit e WebKit emulado mobile
         run: node scripts/cross-browser-smoke.mjs
@@ -212,27 +215,13 @@ jobs:
           node-version: '24'
           package-manager-cache: false
 
-      - name: Instalar Wrangler oficial da Cloudflare apenas no CI
-        run: npm install --no-save --no-package-lock wrangler@4.152.0
+      - name: Instalar ferramentas oficiais com lockfile isolado
+        run: |
+          npm ci --prefix ci-tools --no-audit --no-fund
+          ln -s ci-tools/node_modules node_modules
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
       - name: Testar Neural Core no workerd sem conta ou deploy
         run: node scripts/worker-smoke.mjs
 
-  ci-lock-generator:
-    name: Gerar lock temporario de ferramentas do CI
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Obter codigo
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Configurar Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '24'
-          package-manager-cache: false
-
-      - name: Gerar lock reproduzivel de teste em ambiente efemero
-        run: |
-          npm install --prefix ci-tools --package-lock-only --ignore-scripts --no-audit --no-fund
-          node -e "const fs=require('node:fs');const s=JSON.stringify(fs.readFileSync('ci-tools/package-lock.json','utf8'));console.log('NEURAL_LOCK_BEGIN');for(let i=0;i<s.length;i+=1000)console.log('NEURAL_LOCK_CHUNK:'+s.slice(i,i+1000));console.log('NEURAL_LOCK_END');"
