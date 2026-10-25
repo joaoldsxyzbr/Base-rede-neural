@@ -43,6 +43,8 @@ def export_model(model):
     for layer in layers:
         if not isinstance(layer, dict):
             raise ValueError("Camada inválida")
+        if "operator" in layer and layer["operator"] != "dense":
+            raise ValueError("Operador desconhecido na camada")
         input_size, output_size = layer.get("inputSize"), layer.get("outputSize")
         if any(type(n) is not int or not 1 <= n <= _MAX_WIDTH for n in (input_size, output_size)):
             raise ValueError("Dimensões inválidas")
