@@ -15,7 +15,7 @@ O JavaScript expõe `getCapabilities()` e o Python `training.export.get_capabili
 }
 ```
 
-- `dense`: único tipo de camada implementado. A ordem dos pesos é `[neuronioSaida][neuronioEntrada]`. Operadores não listados são rejeitados; não existe registro dinâmico por plugin.
+- `dense`: único tipo de camada implementado. A ordem dos pesos é `[neuronioSaida][neuronioEntrada]`. No P15 o campo reservado opcional `operator` passa a aceitar somente `dense`; operadores desconhecidos são rejeitados pelo JS e pelo exportador Python. Ausente significa `dense`. O campo é omitido na serialização v1. Não existe registro dinâmico por plugin.
 - As ativações realmente disponíveis para inferência são listadas no código de execução JS e verificadas no contrato Python pelo CI.
 - O JS retorna uma estrutura **congelada**; o Python retorna um novo `dict` independente. Não é possível alterar a compatibilidade da instância editando a resposta.
 - Os três limites descritos são **compartilhados**. Limites adicionais específicos do runtime incluem tamanho máximo de string JSON na leitura JS e tamanho máximo de lote (4.096 amostras). Eles não são negociados pelo contrato comum.

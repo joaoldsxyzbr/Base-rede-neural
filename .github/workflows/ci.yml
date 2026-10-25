@@ -126,6 +126,9 @@ jobs:
       - name: Comparar inferencia em lote e individual
         run: node benchmarks/batch.mjs
 
+      - name: Stress e memória observada sem limite de heap instável
+        run: node --expose-gc benchmarks/stress.mjs
+
   extension-mv3:
     name: Extensão Manifest V3 / Chrome for Testing
     runs-on: ubuntu-latest
@@ -184,13 +187,16 @@ jobs:
           node-version: '24'
           package-manager-cache: false
 
-      - name: Instalar Playwright oficial da Microsoft apenas no CI
-        run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.64.1
+      - name: Instalar ferramentas oficiais com lockfile isolado
+        run: |
+          npm ci --prefix ci-tools --no-audit --no-fund
+          ln -s ci-tools/node_modules node_modules
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          WRANGLER_SEND_METRICS: 'false'
 
       - name: Instalar Firefox e WebKit para teste
-        run: npx playwright install --with-deps firefox webkit
+        run: ci-tools/node_modules/.bin/playwright install --with-deps firefox webkit
 
       - name: Testar inferencia no Firefox, WebKit e WebKit emulado mobile
         run: node scripts/cross-browser-smoke.mjs
@@ -212,8 +218,13 @@ jobs:
           node-version: '24'
           package-manager-cache: false
 
-      - name: Instalar Wrangler oficial da Cloudflare apenas no CI
-        run: npm install --no-save --no-package-lock wrangler@4.152.0
+      - name: Instalar ferramentas oficiais com lockfile isolado
+        run: |
+          npm ci --prefix ci-tools --no-audit --no-fund
+          ln -s ci-tools/node_modules node_modules
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
       - name: Testar Neural Core no workerd sem conta ou deploy
         run: node scripts/worker-smoke.mjs
+

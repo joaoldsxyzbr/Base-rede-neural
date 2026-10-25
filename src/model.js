@@ -58,6 +58,9 @@ export function loadModel(source) {
     if (!layer || typeof layer !== 'object' || Array.isArray(layer)) {
       throw new TypeError(`Camada ${index} inválida`);
     }
+    if (Object.hasOwn(layer, 'operator') && layer.operator !== 'dense') {
+      throw new TypeError(`Camada ${index}: operador desconhecido`);
+    }
     const inputSize = positiveSize(layer.inputSize, `Camada ${index}: entrada`);
     const outputSize = positiveSize(layer.outputSize, `Camada ${index}: saída`);
     if (previousOutput !== null && previousOutput !== inputSize) {

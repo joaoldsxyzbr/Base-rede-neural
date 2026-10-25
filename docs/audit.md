@@ -1,4 +1,6 @@
-# Auditoria de consolidação — Neural Core v0.1.0
+# Auditoria de consolidação — Neural Core v0.1.0 (histórico P8)
+
+> Documento histórico. Para o estado recente, consultar [auditoria P15](audit-p15.md) e [matriz de portabilidade](portability.md).
 
 **Escopo:** revisão da versão inicial em `main` após P0–P8. A evidência é código, testes reproduzíveis e logs do GitHub Actions — não auditoria externa de segurança nem validação de aplicativos consumidores.
 

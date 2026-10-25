@@ -1,0 +1,10 @@
+{
+  "name": "neural-core-ci-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dependências oficiais usadas somente no CI; não são dependências do Neural Core.",
+  "devDependencies": {
+    "playwright": "1.64.1",
+    "wrangler": "4.152.0"
+  }
+}

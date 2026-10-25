@@ -50,10 +50,11 @@ python -m evaluation.benchmark
 python -m evaluation.quality
 node benchmarks/inference.mjs
 node benchmarks/batch.mjs
+node --expose-gc benchmarks/stress.mjs
 python -m training.interop_fixture
 ```
 
-O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, não dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos.
+O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, instaladas por `npm ci --prefix ci-tools` com lockfile independente; não são dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos.
 
 ## Documentação
 
@@ -67,7 +68,9 @@ O GitHub Actions executa os testes e a avaliação científica, verifica paridad
 - [Matriz de portabilidade P13](docs/portability.md)
 - [Teste MV3](docs/extension-mv3.md)
 - [Roadmap](ROADMAP.md)
-- [Auditoria final e limitações conhecidas](docs/audit.md)
+- [Auditoria de consolidação P15](docs/audit-p15.md)
+- [Auditoria histórica P8](docs/audit.md)
+- [Proteção da branch main (configuração administrativa)](docs/branch-protection.md)
 - [Segurança](SECURITY.md)
 
 Princípios: simplicidade, universalidade, modularidade, portabilidade, desempenho e custo zero, aprendizado verificável, segurança e privacidade. Aplicativos se adaptam ao núcleo, nunca o contrário.
