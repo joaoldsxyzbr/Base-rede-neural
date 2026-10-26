@@ -32,9 +32,10 @@ Os parâmetros internos não são modificáveis por consumidores via `model.laye
 - **P12:** inferência em lote, buffers temporários, paridade com inferência individual, benchmark e testes Chrome/MV3.
 - **P13:** Firefox/WebKit Linux, emulação móvel e workerd local, sem alterar o motor.
 - **P14:** declaração de capacidades e descritores Python/JS; teste de contrato gerado offline e validado no CI.
+- **P16:** benchmarks offline com Iris (classificação) e Airfoil (regressão), normalização somente no treino, separação por grupos relevantes e comparação com métodos tradicionais. Não comprovam aplicações de produção.
 - **P15:** validação de campo reservado `operator`, testes gerativos e stress, lockfile das ferramentas de teste separado do runtime e documentação de proteção da main.
 
-Resultados de generalização estão restritos às distribuições artificiais de [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
+Os experimentos P7/P11 usam distribuições artificiais e P16 usa dados reais Iris (classificação) e Airfoil Self-Noise (regressão); nenhum deles demonstra generalização universal. Detalhes em [evaluation.md](evaluation.md); latência em runner é apenas referência e está documentada em [performance.md](performance.md).
 
 ## Segurança, portabilidade e não objetivos
 

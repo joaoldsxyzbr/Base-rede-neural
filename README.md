@@ -3,7 +3,7 @@
 Base neural **genérica, simples, portátil e independente**, com treinamento offline em Python e inferência local em JavaScript puro. Versão inicial `0.1.0`.
 
 - **JavaScript ES Modules:** carregar/validar, prever e serializar modelos de redes densas pequenas (linear, tanh, sigmoid, ReLU e softmax), sem dependência de DOM, Node.js, Cloudflare ou servidor.
-- **Python (stdlib):** treinamento real (SGD, momentum, AdamW, mini-batches + retropropagação), exportação de modelos JSON, experimentos, métricas e comparação com métodos tradicionais.
+- **Python (stdlib):** treinamento real (SGD, momentum, AdamW, mini-batches + retropropagação), exportação de modelos JSON, experimentos sintéticos e avaliação em dados reais de classificação (Iris) e regressão (Airfoil) com comparação a métodos tradicionais.
 - **Privacidade e custo zero:** nenhuma telemetria, assinatura ou biblioteca externa obrigatória.
 - **Limites:** não é um LLM, não há treinamento contínuo em produção e o XOR/benchmarks sintéticos não comprovam resultados em dados reais.
 
@@ -48,13 +48,15 @@ npm test
 python -m unittest discover -s training_tests -v
 python -m evaluation.benchmark
 python -m evaluation.quality
+python -m evaluation.real_data
+python -m evaluation.airfoil
 node benchmarks/inference.mjs
 node benchmarks/batch.mjs
 node --expose-gc benchmarks/stress.mjs
 python -m training.interop_fixture
 ```
 
-O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, instaladas por `npm ci --prefix ci-tools` com lockfile independente; não são dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos.
+O GitHub Actions executa os testes e a avaliação científica, verifica paridade Python×JS, Chrome, extensão MV3, Firefox/WebKit em Linux e o runtime Cloudflare `workerd` local. Playwright/Wrangler são ferramentas **somente de CI**, instaladas por `npm ci --prefix ci-tools` com lockfile independente; não são dependências do núcleo. WebKit emulado não comprova Safari/iOS físico; testes científicos usam dados sintéticos e bases reais Iris e Airfoil, que não comprovam desempenho geral em aplicações de produção.
 
 ## Documentação
 
