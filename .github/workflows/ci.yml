@@ -176,6 +176,9 @@ jobs:
       - name: Avaliar dados reais Iris com baselines e sem vazamento
         run: python -m evaluation.real_data
 
+      - name: Avaliar regressao Airfoil com grupos experimentais disjuntos
+        run: python -m evaluation.airfoil
+
   cross-browser:
     name: Portabilidade / Firefox e WebKit
     runs-on: ubuntu-latest
