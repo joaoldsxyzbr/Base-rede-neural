@@ -91,3 +91,20 @@ Execução [GitHub Actions 40092079823](https://github.com/joaoldsxyzbr/Base-red
 | Probabilidade constante | 50,00% | 0,6667 | 0,25000 |
 
 A probabilidade constante de 0,5 prevê a classe positiva no limiar de decisão, daí seu F1 aparentemente alto apesar de acurácia de apenas 50%. O conjunto foi desenhado para conter uma fronteira não linear; a tabela **não prova** que AdamW supere os demais fora desse experimento, nem constitui benchmark de aplicações reais. Alterar hiperparâmetros em resposta a esse resultado requer reservar um novo teste final independente.
+
+
+## P16 — Primeiro conjunto de dados reais: Iris (classificação multiclasse)
+
+Executar `python -m evaluation.real_data`. A avaliação usa apenas a biblioteca padrão e uma cópia **versionada** de `evaluation/data/iris.csv`. Não há download durante CI nem treinamento. O dataset contém 150 observações de flores reais, 4 medidas numéricas e 3 espécies. Cada conjunto de dados tem limitações de amostragem: este caso é **pequeno e clássico**, não simula operações reais em sites/extensões, e não garante generalização em produção.
+
+**Origem e atribuição da base de dados:** Fisher, R. (1936). *Iris* [Dataset]. UCI Machine Learning Repository, DOI [10.24432/C56C76](https://doi.org/10.24432/C56C76). [UCI Iris nº 53](https://archive.ics.uci.edu/dataset/53/iris), licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). A cópia CSV sem cabeçalho corresponde às amostras distribuídas também em [Plotly/datasets — iris.csv](https://github.com/plotly/datasets/blob/master/iris.csv), consultadas em 25/10/2026. Os 150 registros originais foram preservados. Esta seção fornece o crédito e a indicação da licença do dataset, independentemente da licença MIT do código.
+
+**Protocolo fixo antes de analisar o teste:**
+
+- Repetições com sementes 7, 19 e 31. Em cada repetição, divisão estratificada próxima de 60% treino, 20% validação e 20% teste; vetores de atributos *idênticos* ficam no mesmo conjunto. O CSV contém exemplos repetidos. Relações semânticas não detectáveis não são controladas, e os três testes compartilham observações entre repetições diferentes; não se trata de três datasets independentes.
+- Médias e desvios-padrão de normalização são calculados **somente** com o treino e depois aplicados à validação/teste. Não ajustar preparação, arquitetura ou hiperparâmetros em função dos resultados finais.
+- MLP fixa de 4→8→3, tanh + softmax, perda CCE, AdamW (taxa 0,04, decaimento 0), mini-batch 12, 160 épocas no máximo, paciência de validação 20 e checkpoint de menor perda de validação.
+- Referências não neurais sob as mesmas partições: **centróide mais próximo** (médias por classe calculadas somente do treino) e **classe majoritária** do treino. Ambos usam as mesmas medidas normalizadas quando aplicável.
+- Saída JSON imprime por semente quantidades de exemplos, acurácia, F1 macro e matriz de confusão no teste, época selecionada e resumos descritivos. Métricas são **diagnósticas**, não um ranking universal nem limite de aprovação do CI.
+
+Os testes `training_tests/test_real_data.py` exigem integridade do dataset, reprodutibilidade das divisões, agrupamento de entradas duplicadas, isolamento da normalização, métricas e execução integrada. O CI testa a avaliação, mas não declara a MLP superior ao baseline. Para aplicações futuras, usar dados pertinentes ao domínio, divisão por usuário/grupo/tempo quando apropriado, mais amostras e teste final intocado.
