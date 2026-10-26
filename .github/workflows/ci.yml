@@ -173,6 +173,9 @@ jobs:
       - name: Validar modelos com early stopping e teste independente
         run: python -m evaluation.quality
 
+      - name: Avaliar dados reais Iris com baselines e sem vazamento
+        run: python -m evaluation.real_data
+
   cross-browser:
     name: Portabilidade / Firefox e WebKit
     runs-on: ubuntu-latest
