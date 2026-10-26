@@ -126,3 +126,14 @@ Execute `python -m evaluation.airfoil` (stdlib, sem HTTP, dependências externas
 - A amostra foi coletada em condições experimentais relacionadas, então o agrupamento limita vazamento direto, mas não elimina todas as dependências de aquisição. Hiperparâmetros são fixos, sem ajuste retrospectivo pelo teste. Para produção, avaliar condições e equipamentos realmente novos.
 
 Os testes em `training_tests/test_airfoil.py` cobrem divisão por condições, validação numérica, padronização sem vazamento, regressão linear em equação conhecida, métricas e integração do treinamento. Mantemos Iris como benchmark classificatório e Airfoil como benchmark de regressão — nenhum deles valida todas as arquiteturas ou aplicações reais.
+
+
+**Medição inicial:** [GitHub Actions 40324065910](https://github.com/joaoldsxyzbr/Base-rede-neural/actions/runs/40324065910), Python 3.13, sementes 7/19/31, partições por condição experimental.
+
+| Método | RMSE de teste (dB, menor melhor) | MAE (dB) | R² (maior melhor) |
+| --- | ---: | ---: | ---: |
+| Neural Core MLP | **3,311** | **2,567** | **0,787** |
+| Ridge linear | 5,014 | 3,913 | 0,521 |
+| Média de treinamento | 7,270 | 5,931 | -0,005 |
+
+Esses valores são médias descritivas de três divisões do mesmo dataset. Não são intervalos de confiança, não provam superioridade geral nem desempenho em equipamentos de produção. Para ajustar hiperparâmetros depois dessa avaliação, será necessário reservar novos dados de teste ou usar validação aninhada.
