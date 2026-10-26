@@ -108,3 +108,21 @@ Executar `python -m evaluation.real_data`. A avaliação usa apenas a biblioteca
 - Saída JSON imprime por semente quantidades de exemplos, acurácia, F1 macro e matriz de confusão no teste, época selecionada e resumos descritivos. Métricas são **diagnósticas**, não um ranking universal nem limite de aprovação do CI.
 
 Os testes `training_tests/test_real_data.py` exigem integridade do dataset, reprodutibilidade das divisões, agrupamento de entradas duplicadas, isolamento da normalização, métricas e execução integrada. O CI testa a avaliação, mas não declara a MLP superior ao baseline. Para aplicações futuras, usar dados pertinentes ao domínio, divisão por usuário/grupo/tempo quando apropriado, mais amostras e teste final intocado.
+
+
+## P16 — Airfoil Self-Noise: regressão real por condição experimental
+
+Execute `python -m evaluation.airfoil` (stdlib, sem HTTP, dependências externas ou dados de usuário). A cópia versionada `evaluation/data/airfoil_self_noise.dat` contém **1.503 registros reais**, cinco atributos físicos e uma variável contínua: pressão sonora escalada em dB.
+
+**Fonte e atribuição:** Brooks, T., Pope, D. & Marcolini, M. (1989). *Airfoil Self-Noise* [Dataset]. UCI Machine Learning Repository, [DOI 10.24432/C5VW2C](https://doi.org/10.24432/C5VW2C), licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Cópia `.dat` integral, sem conversão dos dados, obtida de [Dive-into-DL-PyTorch/data/airfoil_self_noise.dat](https://github.com/ShusenTang/Dive-into-DL-PyTorch/blob/master/data/airfoil_self_noise.dat). Direitos dos dados não são substituídos pela licença MIT do código.
+
+**Protocolo definido antes de observar os resultados:**
+
+- Sementes 7, 19, 31; divisão determinística de grupos (aproximadamente 60%/20%/20% por **quantidade de condições**, não de observações). Todas as frequências observadas numa mesma combinação de **ângulo, corda, velocidade e espessura de deslocamento** pertencem à mesma divisão. A separação é mais conservadora que um embaralhamento aleatório das linhas do experimento; ainda não é validação entre túneis de vento diferentes.
+- Padronização de todos os atributos e do alvo **apenas com as estatísticas do treino**. Na avaliação, as saídas são revertidas para dB. Validação e teste não contribuem para estatísticas nem gradientes.
+- Rede MLP `[5,16,1]`, tanh + linear, perda MSE, otimizador AdamW (taxa 0,012; decaimento 0), mini-batch 24, até 80 épocas, paciência 12, checkpoint por menor perda de validação.
+- Métodos tradicionais: regressão linear **ridge** com intercepto não penalizado, penalidade 0,01, e média constante do alvo de treinamento. Ambos utilizam exatamente as mesmas divisões e atributos preparados.
+- Métricas por semente: **RMSE, MAE e R²** no teste; médias e desvios-padrão apenas descritivos. O CI exige cálculos válidos e reprodutibilidade, não superioridade de rede neural sobre regressão.
+- A amostra foi coletada em condições experimentais relacionadas, então o agrupamento limita vazamento direto, mas não elimina todas as dependências de aquisição. Hiperparâmetros são fixos, sem ajuste retrospectivo pelo teste. Para produção, avaliar condições e equipamentos realmente novos.
+
+Os testes em `training_tests/test_airfoil.py` cobrem divisão por condições, validação numérica, padronização sem vazamento, regressão linear em equação conhecida, métricas e integração do treinamento. Mantemos Iris como benchmark classificatório e Airfoil como benchmark de regressão — nenhum deles valida todas as arquiteturas ou aplicações reais.
